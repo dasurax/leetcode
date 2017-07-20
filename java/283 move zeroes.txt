@@ -1,3 +1,7 @@
+/*
+    不考虑把0都移到右边，而是考虑把非0元素都移到左边
+*/
+
 public class Solution {
     public void moveZeroes(int[] nums) {
         int l = nums.length;
@@ -5,10 +9,10 @@ public class Solution {
         for(int i = 0; i < l; i++) {
             if(nums[i] != 0 ) {
                 int tmp = nums[left];
-                nums[left] = nums[i];
-                nums[i] = tmp;
-                left += 1;
-            }            
+                nums[left] = nums[i];   //出现第一个0元素之前，left = i，实际上未发生交换
+                nums[i] = tmp;          //第一个0元素出现后，只有1个连续的0时，非0元素紧跟在0元素之后，故交换后left = left + 1
+                left += 1;              //当有多个0元素在一起时，交换后，紧跟在那个被交换到后面的0元素之后的0成为最左的0，故仍有left += 1
+            }            
         }
     }
 }
