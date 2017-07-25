@@ -1,0 +1,33 @@
+Given an array of 2n integers, your task is to group these integers into n pairs of integer, say (a1, b1), (a2, b2), ..., (an, bn) which makes sum of min(ai, bi) for all i from 1 to n as large as possible.
+
+Example 1:
+Input: [1,4,3,2]
+
+Output: 4
+Explanation: n is 2, and the maximum sum of pairs is 4 = min(1, 2) + min(3, 4).
+Note:
+  n is a positive integer, which is in the range of [1, 10000].
+  All the integers in the array will be in the range of [-10000, 10000].
+
+//结果为排序后所有奇数项相加
+//关键在于排序，如果使用Array自带的排序函数，复杂度为O(nlogn)
+//因为数组的范围确定在[-10000, 10000]之间，因此可以使用桶排序，复杂度为O(n + k)，k为所有数组元素的范围（该例中为20000 + 1）
+
+public class Solution {
+    public int arrayPairSum(int[] nums) {
+        int[] bucket = new int [20001];
+        int l = nums.length;
+        int remain = 0;
+        int sum = 0;
+        for(int i = 0; i < l; i++) {
+            bucket[nums[i] + 10000]++;
+        }
+        for(int i = 0; i < 20001; i++) {
+            if(bucket[i] > 0) {
+                sum += (i - 10000) * ((bucket[i] + 1 - remain) / 2); //通过remain来判断要对i加几次
+                remain = (bucket[i] - remain) % 2;
+            }
+        }
+        return sum;
+    }
+}
