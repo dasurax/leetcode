@@ -1,0 +1,47 @@
+Given an array of integers where 1 ≤ a[i] ≤ n (n = size of array), some elements appear twice and others appear once.
+
+Find all the elements of [1, n] inclusive that do not appear in this array.
+
+Could you do it without extra space and in O(n) runtime? You may assume the returned list does not count as extra space.
+
+Example:
+
+Input:
+[4,3,2,7,8,2,3,1]
+
+Output:
+[5,6]
+
+//不能使用额外空间，并且要求时间复杂度为O(n)
+//思路：可以将数组中出现的元素当作下标，并对该下标对应的元素进行修改，这样数组中未出现的元素作为下标所对应的元素不会被修改
+
+//方法1：修改为负值，并取绝对值
+public class Solution {
+    public List<Integer> findDisappearedNumbers(int[] nums) {
+        int l = nums.length;
+        List<Integer> re = new ArrayList<Integer>();
+        for(int i = 0; i < l; i++) {
+            int idx = Math.abs(nums[i]) - 1;  //取完负值后nums[i]可能为负数，因此要取绝对值
+            if(nums[idx] > 0) {
+                nums[idx] = -nums[idx];
+            }
+        }
+        for(int i = 0; i < l; i++) {
+            if(nums[i] > 0) {
+                re.add(i + 1);
+            }
+        }
+        return re;
+    }
+}
+
+//方法2：增加n(数组长度)，并取余。   注：当数组很大时，不断累加n可能会导致溢出
+public class Solution {
+    public List<Integer> findDisappearedNumbers(int[] nums) {
+        List<Integer> res = new ArrayList<>();
+        int n = nums.length;
+        for (int i = 0; i < nums.length; i ++) nums[(nums[i]-1) % n] += n;  //+=n会导致越界，因此需要%n取余数
+        for (int i = 0; i < nums.length; i ++) if (nums[i] <= n) res.add(i+1);
+        return res;
+    }
+}
