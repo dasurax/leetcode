@@ -1,0 +1,89 @@
+Given an array of size n, find the majority element. The majority element is the element that appears more than ⌊ n/2 ⌋ times.
+
+You may assume that the array is non-empty and the majority element always exist in the array.
+
+# 算法来源：Boyer-Moore:A Linear Time Majority Vote Alogrithm
+
+public class Solution {
+    public int majorityElement(int[] nums) {
+        int major = nums[0];
+        int count = 1;
+        int l = nums.length;
+        for(int i = 1; i < l; i++) {
+            if(nums[i] == major)
+                count++;
+            else if(count > 0)
+                count--;
+            else {
+                count = 1;
+                major = nums[i];
+            }
+        }
+        return major;
+    }
+}
+
+或（for循环内分支顺序不同）：
+
+public class Solution {
+    public int majorityElement(int[] nums) {
+        int major = nums[0];
+        int count = 1;
+        int l = nums.length;
+        for(int i = 1; i < l; i++) {
+            if(count == 0) {
+                count++;
+                major = nums[i];
+            }
+            else if(nums[i] == major)
+                count++;
+            else {
+                count--;
+            }
+        }
+        return major;
+    }
+}
+
+# 实际上仍是Majority Vote Alogrithm
+public class Solution {
+    public int majorityElement(int[] nums) {
+        
+        if(nums.length==1|| nums.length == 2)
+            return nums[0];
+        int p = 0;
+        for(int i=0;i<nums.length;i+=2){            
+            if(i==nums.length-1||nums[i]==nums[i+1])  //如果相邻的两个数不一样，就扔掉（不执行if内语句），相当于上面算法中count值不变。
+                nums[p++] = nums[i];  //如果一样(或者是奇数长度数组中的最后一个数)，就依次赋值到数组第p个位子上，相当于上面算法中count值+2(+1)。
+        }
+        // 因为上述将+2(+1)一视同仁会产生问题，如[2 2 1 1 2 2 1 1 2 2 1 1 2 2 1] -> [2 1 2 1 2 1 2 1] -> p==0
+        // 直观上，nums[nums.length - 2]的count值永远要大于nums[nums.length - 1]，因此取nums[nums.length - 2]
+        if(p == 0)   
+            return nums[nums.length - 2];
+        return majorityElement(Arrays.copyOfRange(nums, 0, p));
+	  }
+}
+
+# Bit Manipulation：如果将数组中所有的数展成32位，因为major的存在，每1位上必定会有1的个数大于0的个数，或0的个数大于1的个数（不存在等于），
+# 那么只需把多的数拼到结果上。
+
+public int majorityElement(int[] num) {
+    int ret = 0;
+    for (int i = 0; i < 32; i++) {  //相当于整数的32位
+        int ones = 0, zeros = 0;
+        for (int j = 0; j < num.length; j++) {
+            if ((num[j] & (1 << i)) != 0) {  //如果num[j]的第i位上有1的话，那么num[j] & (1 << i)) = 1，否则 = 0
+                ++ones;
+            }
+            else
+                ++zeros;
+        }
+        if (ones > zeros)  //显然如果存在major，且major的第i位为1，则ones > zeros，因此在结果的第i位上构造1，否则维持0
+            ret |= (1 << i);
+    }
+    return ret;
+}
+
+#其他算法：排序（排序后中间的元素一定是major），hashmap（当某个count超过n/2即可中断循环），分治算法（判断左右两部分各自的major是谁）
+
+
