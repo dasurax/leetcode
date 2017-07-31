@@ -1,0 +1,78 @@
+In MATLAB, there is a very useful function called 'reshape', which can reshape a matrix into a new one with different size but keep its original data.
+
+You're given a matrix represented by a two-dimensional array, and two positive integers r and c representing the row number and column number of the wanted reshaped matrix, respectively.
+
+The reshaped matrix need to be filled with all the elements of the original matrix in the same row-traversing order as they were.
+
+If the 'reshape' operation with given parameters is possible and legal, output the new reshaped matrix; Otherwise, output the original matrix.
+
+Example 1:
+Input: 
+nums = 
+[[1,2],
+ [3,4]]
+r = 1, c = 4
+Output: 
+[[1,2,3,4]]
+Explanation:
+The row-traversing of nums is [1,2,3,4]. The new reshaped matrix is a 1 * 4 matrix, fill it row by row by using the previous list.
+
+# 遍历原数组即可，注意下标的计算
+
+public class Solution {
+    public int[][] matrixReshape(int[][] nums, int r, int c) {
+        int rr = nums.length;
+        int rc = nums[0].length;
+        if(rr * rc != r * c)
+            return nums;
+        int[][] newnums = new int[r][c];
+        for(int i = 0; i < rr; i++) {
+            for(int j = 0; j < rc; j++) {
+                int idx = i * rc + j;
+                newnums[idx / c][idx % c] = nums[i][j];
+            }
+        }
+        return newnums;
+    }
+}
+
+# 注意到idx = i * rc + j的计算结果实际上就是对idx从0到元素总数的递增，因此可以简化为一层循环。
+
+public class Solution {
+    public int[][] matrixReshape(int[][] nums, int r, int c) {
+        int rr = nums.length;
+        int rc = nums[0].length;
+        int total = rr * rc;
+        if(total != r * c)
+            return nums;
+        int[][] newnums = new int[r][c];
+        for(int i = 0; i < total; i++) {
+            newnums[i / c][i % c] = nums[i / rc][i % rc];
+        }
+        return newnums;
+    }
+}
+
+# 此外还可以对r和c循环，通过n,m计数来判断当前的下标。
+
+public class Solution {
+    public int[][] matrixReshape(int[][] nums, int r, int c) {
+        int row = nums.length;
+        int col = nums[0].length;
+        if(row*col<r*c){
+            return nums;
+        }
+        int[][] res = new int[r][c];
+        int m=0 ,n=0;
+        for(int i=0;i<r;i++){
+            for(int j=0;j<c;j++){
+                if(n>=col){
+                    n=0;
+                    m++;
+                }
+                res[i][j]=nums[m][n++];
+            }
+        }
+        return res;
+    }
+}
