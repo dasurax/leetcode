@@ -1,0 +1,97 @@
+Given a non-empty array of integers, return the third maximum number in this array. If it does not exist, return the maximum number. The time complexity must be in O(n).
+
+Example 1:
+Input: [3, 2, 1]
+
+Output: 1
+
+Explanation: The third maximum is 1.
+Example 2:
+Input: [1, 2]
+
+Output: 2
+
+Explanation: The third maximum does not exist, so the maximum (2) is returned instead.
+Example 3:
+Input: [2, 2, 3, 1]
+
+Output: 1
+
+Explanation: Note that the third maximum here means the third maximum distinct number.
+Both numbers with value 2 are both considered as second maximum.
+
+# 使用三个数依次保存前三大的值。因为数组中可能存在Integer.MIN_VALUE，使用flag和flag2判断。可以使用Long.MIN_VALUE来避免判断。
+
+public class Solution {
+    public int thirdMax(int[] nums) {
+        int max1 = Integer.MIN_VALUE, max2 = Integer.MIN_VALUE, max3 = Integer.MIN_VALUE, flag = 0, flag2 = 1;
+        int l = nums.length;
+        for(int i = 0; i < l; i++) {
+            if(nums[i] == Integer.MIN_VALUE && flag2 == 1) {
+                flag2 = 0;
+                flag++;
+                continue;
+            }
+            if(nums[i] == max1 || nums[i] == max2 || nums[i] == max3) {
+                continue;
+            }
+            flag++;
+            if(nums[i] > max1) {
+                max3 = max2;
+                max2 = max1;
+                max1 = nums[i];
+            }
+            else if (nums[i] > max2) {
+                max3 = max2;
+                max2 = nums[i];
+            }
+            else if (nums[i] > max3) {
+                max3 = nums[i];
+            }
+        }
+        if(flag > 2)
+            return max3;
+        else
+            return max1;
+    }
+}
+
+# 也可使用Integer类来来保存最大值。
+
+public int thirdMax(int[] nums) {
+    Integer max1 = null;
+    Integer max2 = null;
+    Integer max3 = null;
+    for (Integer n : nums) {
+        if (n.equals(max1) || n.equals(max2) || n.equals(max3)) continue;
+        if (max1 == null || n > max1) {
+            max3 = max2;
+            max2 = max1;
+            max1 = n;
+        } else if (max2 == null || n > max2) {
+            max3 = max2;
+            max2 = n;
+        } else if (max3 == null || n > max3) {
+            max3 = n;
+        }
+    }
+    return max3 == null ? max1 : max3;
+}
+
+# 更好的做法是采用动态的方式，这样对于第n大的这一类问题都可以处理。PriorityQueue小数在前。
+# 但该方法操作了对象，会造成额外的开销。
+
+public class Solution {
+    public int thirdMax(int[] nums) {
+       PriorityQueue<Integer> pq = new PriorityQueue<>();
+       Set<Integer> set = new HashSet<>();
+       for(int n : nums) {
+           if(!pq.contains (n)) {
+               pq.offer(n);
+               if(pq.size() > 3 ) pq.poll();
+           }
+       }
+       if(pq.size() == 2) pq.poll();
+       return pq.peek();
+    }
+}
