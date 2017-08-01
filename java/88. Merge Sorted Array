@@ -1,0 +1,19 @@
+Given two sorted integer arrays nums1 and nums2, merge nums2 into nums1 as one sorted array.
+
+Note:
+You may assume that nums1 has enough space (size that is greater or equal to m + n) to hold additional elements from nums2. The number of elements initialized in nums1 and nums2 are m and n respectively.
+
+# 如果从两个数组前面开始比较并赋值，会破坏nums1数组。又因为nums1足够大（m + n），因此要从后面比较并填充nums1。
+
+public class Solution {
+    public void merge(int[] nums1, int m, int[] nums2, int n) {
+        int i = m + n - 1;
+        int mi = m - 1, ni = n - 1;
+        while(ni >= 0) {  //只对ni >= 0做判断，因为如果ni < 0且mi > 0时，最终num1的前mi个数将保持原有状态不变，无需再赋值。
+            if(mi < 0 || nums1[mi] < nums2[ni])
+                nums1[i--] = nums2[ni--];
+            else
+                nums1[i--] = nums1[mi--];
+        }
+    }
+}
