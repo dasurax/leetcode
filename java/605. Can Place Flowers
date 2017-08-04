@@ -1,0 +1,70 @@
+Suppose you have a long flowerbed in which some of the plots are planted and some are not. However, flowers cannot be planted in adjacent plots - they would compete for water and both would die.
+
+Given a flowerbed (represented as an array containing 0 and 1, where 0 means empty and 1 means not empty), and a number n, return if n new flowers can be planted in it without violating the no-adjacent-flowers rule.
+
+Example 1:
+Input: flowerbed = [1,0,0,0,1], n = 1
+Output: True
+Example 2:
+Input: flowerbed = [1,0,0,0,1], n = 2
+Output: False
+Note:
+The input array won't violate no-adjacent-flowers rule.
+The input array size is in the range of [1, 20000].
+n is a non-negative integer which won't exceed the input array size.
+
+# 计算连续0的个数，并需要注意数组起点和终点的特殊情况。下面有两种写法：
+
+public class Solution {
+    public boolean canPlaceFlowers(int[] flowerbed, int n) {
+        int l = flowerbed.length;
+        int newf = 0;
+        int left = -2;  // left = -2可以减少一些条件判断语句，直接用统一的形式处理数组第一个数是0或者不是0的情况。
+        for(int i = 0; i < l; i++) {
+            if(flowerbed[i] == 0)
+                continue;
+            newf += (i - left - 2) / 2;
+            left = i;
+        }
+        if(left != l - 1)  // 注意处理数组最后一个数不是1个情况，避免遗漏。
+            newf += (l - left - 1) / 2;
+        return newf >= n;
+    }
+}
+
+public boolean canPlaceFlowers(int[] flowerbed, int n) {
+    int count = 1;  // 初始count=1是因为数组第一个数没有左边元素来约束它
+    int result = 0;
+    for(int i = 0; i < flowerbed.length; i++) {
+        if(flowerbed[i] == 0) {
+            count++;
+        }else {
+            result += (count-1)/2;
+            count = 0;
+        }
+    }
+    if(count != 0) result += count/2; // 这里没有count-1是因为count-1+1，类似于初始count=1,因为数组最后一个数没有右边元素来约束它
+    return result>=n;
+}
+
+# 另一种方法采用贪心算法，当发现一个位置可以种植，就将该点设置为1：
+
+public class Solution {
+    public boolean canPlaceFlowers(int[] flowerbed, int n) {
+        int count = 0;
+        for(int i = 0; i < flowerbed.length && count < n; i++) {
+            if(flowerbed[i] == 0) {
+	             //get next and prev flower bed slot values. If i lies at the ends the next and prev are considered as 0. 
+               int next = (i == flowerbed.length - 1) ? 0 : flowerbed[i + 1]; 
+               int prev = (i == 0) ? 0 : flowerbed[i - 1];
+               if(next == 0 && prev == 0) {
+                   flowerbed[i] = 1;
+                   count++;
+               }
+            }
+        }
+        
+        return count == n;
+    }
+}
+
