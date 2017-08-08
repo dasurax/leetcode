@@ -1,0 +1,83 @@
+Given an array of n positive integers and a positive integer s, find the minimal length of a contiguous subarray of which the sum ≥ s. If there isn't one, return 0 instead.
+
+For example, given the array [2,3,1,2,4,3] and s = 7,
+the subarray [4,3] has the minimal length under the problem constraint.
+
+# O(n)
+
+public class Solution {
+    public int minSubArrayLen(int s, int[] nums) {
+        int l = nums.length;
+        int left = 0;
+        int c = l + 1, sum = 0;
+        for(int i = 0; i < l; i++) {
+            sum += nums[i];
+            if(sum >= s) {
+                c = Math.min(i - left + 1, c);
+                while(left < i && sum - nums[left] >= s) { //减去nums[left]仍大于s，说明nums[left]对于结果没有影响，减去。
+                    sum -= nums[left];
+                    left++;
+                    c = Math.min(i - left + 1, c);
+                }
+            }
+        }
+        if(c > l)
+            return 0;
+        else
+            return c;
+    }
+}
+
+public class Solution {
+    public int minSubArrayLen(int s, int[] nums) {
+        int l = nums.length;
+        int left = 0;
+        int c = l + 1, sum = 0;
+        for(int i = 0; i < l; i++) {
+            sum += nums[i];
+            while(sum >= s) {  //一旦sum超过了s，因为数组元素都是正数，sum会一直增加，因此需要将sum减到s以下。
+                c = Math.min(i - left + 1, c);
+                sum -= nums[left++];
+            }
+        }
+        if(c > l)
+            return 0;
+        else
+            return c;
+    }
+}
+
+# O(nlogn):由log联想到折半查找，查找对象为数组累加和构成的数组。如[1,5,3,4]->[0,1,6,9,13],设s=5，则找到从0开始的满足要求的最短子数组等价于
+# 对0+5=5找到累加数组中第一个比5大的数，即6。找到从2开始的满足要求的最短子数组等价于对6+5=11找到累加数组中第一个比11大的数（即13）。依此类推。
+# 这样做的原理是13-6>5表明从6加到13过程中的和（7）大于s，且累加数组中13前面的任何子数组和ss，ss-6都小于s，而13后面的任何子数组和sss,
+# 从6加到sss过程中的和虽然大于s，但所加元素的个数显然多于从6加到13过程中所加元素的个数。
+
+public class Solution {
+    public int minSubArrayLen(int s, int[] nums) {
+        return solveNLogN(s, nums);
+    }
+
+    private int solveNLogN(int s, int[] nums) {
+        int[] sums = new int[nums.length + 1];
+        for (int i = 1; i < sums.length; i++) sums[i] = sums[i - 1] + nums[i - 1];
+        int minLen = Integer.MAX_VALUE;
+        for (int i = 0; i < sums.length; i++) {
+            int end = binarySearch(i + 1, sums.length - 1, sums[i] + s, sums);
+            if (end == sums.length) break;
+            if (end - i < minLen) minLen = end - i;
+        }
+        return minLen == Integer.MAX_VALUE ? 0 : minLen;
+    }
+    
+    private int binarySearch(int lo, int hi, int key, int[] sums) {
+        while (lo <= hi) {
+           int mid = (lo + hi) / 2;
+           if (sums[mid] >= key){
+               hi = mid - 1;
+           } else {
+               lo = mid + 1;
+           }
+        }
+        return lo;
+    }
+}
