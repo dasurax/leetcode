@@ -1,0 +1,61 @@
+Rotate an array of n elements to the right by k steps.
+
+For example, with n = 7 and k = 3, the array [1,2,3,4,5,6,7] is rotated to [5,6,7,1,2,3,4].
+
+Note:
+Try to come up as many solutions as you can, there are at least 3 different ways to solve this problem.
+
+[show hint]
+
+Related problem: Reverse Words in a String II
+
+Credits:
+Special thanks to @Freezen for adding this problem and creating all test cases.
+
+# 不开辟额外空间的方法。方法一，根据oidx求出新的nidx，保存nidx对应的值，把oidx的值赋给nidx，直到执行过l（数组长度）次，
+# 注意有可能出现重复下标（比如l=8,k=4,oidx=0->nidx=4,oidx=4->nidx=8%8=0，这样将无限循环只改变idx为0和4的元素），因此需要start记录起始点：
+
+public class Solution {
+    public void rotate(int[] nums, int k) {
+        int l = nums.length;
+        if(k == 0 || k == l)
+            return;
+        int count = 0, start = 0;
+        int oidx = 0, nidx = 0, otmp = nums[0], ntmp = 0;
+        while(count < l) {
+            do {
+                nidx = (oidx + k) % l;
+                ntmp = nums[nidx];
+                nums[nidx] = otmp;
+                otmp = ntmp;
+                oidx = nidx;
+                count++;
+            } while(start != oidx);
+            start++;
+            start %= l;
+            oidx = start;
+            otmp = nums[oidx];
+        }
+    }
+}
+
+# 方法2，先将整个数组翻转，再将前k个翻转，再将后n-k个翻转（或先将前k个翻转，再将后n-k个翻转，再将整个数组翻转）：
+
+public class Solution {
+    public void rotate(int[] nums, int k) {
+        k %= nums.length;
+        reverse(nums, 0, nums.length - 1);
+        reverse(nums, 0, k - 1);
+        reverse(nums, k, nums.length - 1);
+    }
+
+    public void reverse(int[] nums, int start, int end) {
+        while (start < end) {
+            int temp = nums[start];
+            nums[start] = nums[end];
+            nums[end] = temp;
+            start++;
+            end--;
+        }
+    }
+}
