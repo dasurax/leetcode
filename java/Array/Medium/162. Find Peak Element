@@ -1,0 +1,75 @@
+A peak element is an element that is greater than its neighbors.
+
+Given an input array where num[i] ≠ num[i+1], find a peak element and return its index.
+
+The array may contain multiple peaks, in that case return the index to any one of the peaks is fine.
+
+You may imagine that num[-1] = num[n] = -∞.
+
+For example, in array [1, 2, 3, 1], 3 is a peak element and your function should return the index number 2.
+
+# 正常思路，找到比左边大且比右边小的，O(n)：
+
+public class Solution {
+    public int findPeakElement(int[] nums) {
+        int l = nums.length;
+        if(l == 1)
+            return 0;
+        if(nums[0] > nums[1])
+            return 0;
+        if(nums[l - 1] > nums[l - 2])
+            return l - 1;
+        for(int i = 1; i < l - 1; i++)
+            if(nums[i] > nums[i - 1] && nums[i] > nums[i + 1])
+                return i;
+        return -1;
+    }
+}
+
+public class Solution {
+    public int findPeakElement(int[] nums) {
+        int l = nums.length;
+        for(int i = 1; i < l; i++)
+            if(nums[i] < nums[i - 1])  //直接找到第一个比左边小的数
+                return i - 1;
+        return l - 1;
+    }
+}
+
+# O(logn)，二分查找。思路是找到一个[left, right]，使得nums[left-1]<nums[left]，且nums[right]>nums[right+1]，这样peek一定会落在[left,right]。
+# 具体解释见 https://discuss.leetcode.com/topic/29329/java-solution-and-explanation-using-invariants
+
+public class Solution {  //迭代
+    public int findPeakElement(int[] nums) {
+        int l = nums.length;
+        int left = 0, right = l - 1;
+        int mid1, mid2;
+        while(left < right) {
+            mid1 = (right + left) / 2;
+            mid2 = mid1 + 1;
+            if(nums[mid1] < nums[mid2]) 
+                left = mid2;
+            else
+                right = mid1;
+        }
+        return left;
+    }
+}
+
+public class Solution {  //递归
+    public int findPeakElement(int[] nums) {
+        int l = nums.length;
+        return biSearch(0, l - 1, nums);
+    }
+    
+    public int biSearch(int left, int right, int[] nums) {
+        if(left >= right)
+            return left;
+        int mid1 = (right + left) / 2;
+        int mid2 = mid1 + 1;
+        if(nums[mid1] < nums[mid2]) 
+            return biSearch(mid2, right, nums);
+        else
+            return biSearch(left, mid1, nums);
+    }
+}
