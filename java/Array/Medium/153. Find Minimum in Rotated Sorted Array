@@ -1,0 +1,42 @@
+Suppose an array sorted in ascending order is rotated at some pivot unknown to you beforehand.
+
+(i.e., 0 1 2 4 5 6 7 might become 4 5 6 7 0 1 2).
+
+Find the minimum element.
+
+You may assume no duplicate exists in the array.
+
+# 正常算法，找到第一个比左边小的数，O(n)：
+
+public class Solution {
+    public int findMin(int[] nums) {
+        int l = nums.length;
+        for(int i = 0; i < l - 1; i++) {
+            if(nums[i] > nums[i + 1])
+                return nums[i + 1];
+        }
+        return nums[0];
+    }
+}
+
+# 二分查找，O(logn)，如果子数组起始元素小于最后元素，说明没有移位，起始即为最小。如果起始大于最后，则取中间，
+# 若中间元素小于起始，说明最小元素在从起始到中间的子数组中；若中间元素大于最后，则说明最小元素在从中间到最后的子数组中。
+
+public class Solution {
+    public int findMin(int[] nums) {
+        int left = 0, right = nums.length - 1;
+        while(left < right) {
+            int mid = (left + right) / 2;
+            if(nums[left] > nums[right])
+            {
+                if(nums[mid] > nums[right])
+                    left = mid + 1;
+                else
+                    right = mid;
+            }
+            else
+                return nums[left];
+        }
+        return nums[left];
+    }
+}
