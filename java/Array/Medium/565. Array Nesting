@@ -1,0 +1,46 @@
+A zero-indexed array A consisting of N different integers is given. The array contains all integers in the range [0, N - 1].
+
+Sets S[K] for 0 <= K < N are defined as follows:
+
+S[K] = { A[K], A[A[K]], A[A[A[K]]], ... }.
+
+Sets S[K] are finite for each K and should NOT contain duplicates.
+
+Write a function that given an array A consisting of N integers, return the size of the largest set S[K] for this array.
+
+Example 1:
+Input: A = [5,4,0,3,1,6,2]
+Output: 4
+Explanation: 
+A[0] = 5, A[1] = 4, A[2] = 0, A[3] = 3, A[4] = 1, A[5] = 6, A[6] = 2.
+
+One of the longest S[K]:
+S[0] = {A[0], A[5], A[6], A[2]} = {5, 6, 2, 0}
+Note:
+N is an integer within the range [1, 20,000].
+The elements of A are all distinct.
+Each element of array A is an integer within the range [0, N-1].
+
+# O(n)复杂度。每访问一个数就将该数标记为访问过的，因为标记为访问过的说明从该数开始的后续链一定被包括在一个更长的链中，因此可以跳过。
+# 因为该题数组元素均为正，因此可以直接置为负数来当作标记，而无须开辟新的空间。
+
+
+
+# 另一种精简写法。
+
+public class Solution {
+    public int arrayNesting(int[] a) {
+        int maxsize = 0;
+        for (int i = 0; i < a.length; i++) {
+            int size = 0;
+            for (int k = i; a[k] >= 0; size++) {  //将size的计算放到for循环里，同时a[k]>=0将上面的if和while结合起来。
+                int ak = a[k];
+                a[k] = -1; // mark a[k] as visited;
+                k = ak;
+            }
+            maxsize = Integer.max(maxsize, size);
+        }
+
+        return maxsize;
+    }
+}
