@@ -1,0 +1,46 @@
+Find the contiguous subarray within an array (containing at least one number) which has the largest product.
+
+For example, given the array [2,3,-2,4],
+the contiguous subarray [2,3] has the largest product = 6.
+
+# DP算法1：f[i]表示从某处开始截至到i（乘上A[i]以后）的连续乘积的最大值，g[i]表示连续乘积的最小值。保留最小值是因为最小值乘以负数可能会直接变为最大值。
+
+public class Solution {
+    public int maxProduct(int[] A) {
+        if (A == null || A.length == 0) {
+            return 0;
+        }
+        int[] f = new int[A.length];
+        int[] g = new int[A.length];
+        f[0] = A[0];
+        g[0] = A[0];
+        int res = A[0];
+        for (int i = 1; i < A.length; i++) {
+            f[i] = Math.max(Math.max(f[i - 1] * A[i], g[i - 1] * A[i]), A[i]);
+            g[i] = Math.min(Math.min(f[i - 1] * A[i], g[i - 1] * A[i]), A[i]);
+            res = Math.max(res, f[i]);
+        }
+        return res;
+    }
+}
+
+# DP算法2：简化版，不需要保存所有中间结果，且通过swap操作，上述的两个Math.max(Math.max变为了1个。
+
+public class Solution {
+    public int maxProduct(int[] nums) {
+        int r = nums[0];
+        int l = nums.length;
+        int imax = r, imin = r, tmp;
+        for(int i = 1; i < l; i++) {
+            if(nums[i] < 0) {
+                tmp = imax;
+                imax = imin;
+                imin = tmp;
+            }
+            imax = Math.max(imax * nums[i], nums[i]);
+            imin = Math.min(imin * nums[i], nums[i]);
+            r = Math.max(r, imax);
+        }
+        return r;
+    }
+}
