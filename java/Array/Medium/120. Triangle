@@ -1,0 +1,46 @@
+Given a triangle, find the minimum path sum from top to bottom. Each step you may move to adjacent numbers on the row below.
+
+For example, given the following triangle
+[
+     [2],
+    [3,4],
+   [6,5,7],
+  [4,1,8,3]
+]
+The minimum path sum from top to bottom is 11 (i.e., 2 + 3 + 5 + 1 = 11).
+
+Note:
+Bonus point if you are able to do this using only O(n) extra space, where n is the total number of rows in the triangle.
+
+# DP算法，从最后开始计算到当前点的最短路径，如从最后一行到第三行6的最短路径是6+1=7。而到第二排3的最短路径，是3加上到6和到5的最短路径中，较小的那个。
+# 可以直接将第四行与第三行计算后的结果保存到第三行中，依次类推。空间复杂度为O(1)。
+
+public class Solution {
+    public int minimumTotal(List<List<Integer>> triangle) {
+        int l = triangle.size(), min;
+        for(int i = l - 2; i >= 0; i--) {
+            for(int j = 0; j < i + 1; j++) { 
+                min = triangle.get(i).get(j) + 
+                    Math.min(triangle.get(i + 1).get(j), triangle.get(i + 1).get(j + 1));
+                triangle.get(i).set(j, min);
+            }
+        }
+        return triangle.get(0).get(0);
+    }
+}
+
+# 因为大量的get行为会损害性能，因此可以额外开辟出O(n)的空间来保存计算结果。
+# 即可以直接将第四行与第三行计算后的结果保存到tmp中，再将tmp与第二行计算的结果保存到tmp中。依次类推。空间复杂度为O(n)。
+
+public class Solution {
+    public int minimumTotal(List<List<Integer>> triangle) {
+        int l = triangle.size(), min;
+        int tmp[] = new int[l + 1];
+        for(int i = l - 1; i >= 0; i--) {
+            for(int j = 0; j <= i; j++) { 
+                tmp[j] = Math.min(tmp[j], tmp[j + 1]) + triangle.get(i).get(j);  //第一次循环实际上是把最后一行拷贝到tmp中。
+            }
+        }
+        return tmp[0];
+    }
+}
