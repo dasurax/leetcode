@@ -1,0 +1,101 @@
+Given inorder and postorder traversal of a tree, construct the binary tree.
+
+Note:
+You may assume that duplicates do not exist in the tree.
+
+# 后序的最后一个元素是根节点，用该元素将中序划分为左子树和右子树，后序的剩余元素按左右子树长度划分为左右子树的后序遍历数组，然后递归处理。
+
+/**
+ * Definition for a binary tree node.
+ * public class TreeNode {
+ *     int val;
+ *     TreeNode left;
+ *     TreeNode right;
+ *     TreeNode(int x) { val = x; }
+ * }
+ */
+public class Solution {
+    public TreeNode buildTree(int[] inorder, int[] postorder) {
+        Map<Integer,Integer> map = new HashMap();  //定义了HashMap，开辟了新的空间，但是比通过循环从中序数组中找到根节点要快不少。
+        for(int i = 0; i < inorder.length; i++){
+            map.put(inorder[i], i);
+        }
+        return build(inorder, postorder, 0, inorder.length - 1, 0, inorder.length - 1, map);
+    }   
+    
+    public TreeNode build(int[] inorder, int[] postorder, int instart, int inend, int poststart, int postend, Map<Integer,Integer> map) {
+        if(instart > inend)
+            return null;
+        if(instart == inend)
+            return new TreeNode(inorder[instart]);
+        int postroot = postorder[postend];   
+        int partition = 0;
+        partition = map.get(postroot);
+        TreeNode root = new TreeNode(postroot);
+        root.left = build(inorder, postorder, instart, partition - 1, poststart, poststart + partition - instart - 1, map);
+        root.right = build(inorder, postorder, partition + 1, inend,  poststart + partition - instart, postend - 1, map);
+        return root;
+    }   
+}
+
+# 注意到poststart实际上不必要的，可以将该参数省略。
+
+public class Solution {
+    public TreeNode buildTree(int[] inorder, int[] postorder) {
+        return build(inorder, postorder, 0, inorder.length - 1, inorder.length - 1);
+    }   
+    
+    public TreeNode build(int[] inorder, int[] postorder, int instart, int inend, int postend) {
+        if(instart > inend || postend < 0)
+            return null;
+        int postroot = postorder[postend];   
+        int partition = 0;
+        for(int i = inend; i >= instart; i--) {   //测试发现从inend开始找比从instart开始找要快很多，可能和树的结构有关？
+            if(inorder[i] == postroot) { 
+                partition = i;
+                break;
+            }
+        }
+        TreeNode root = new TreeNode(postroot);
+        root.left = build(inorder, postorder, instart, partition - 1, postend - (inend - partition) - 1);
+        root.right = build(inorder, postorder, partition + 1, inend, postend - 1);
+        return root;
+    }   
+}
+
+# 迭代算法（待理解）
+
+public class Solution {
+    int pInorder;   // index of inorder array
+    int pPostorder; // index of postorder array
+
+    private TreeNode buildTree(int[] inorder, int[] postorder, TreeNode end) {
+        if (pPostorder < 0) {
+            return null;
+        }
+
+        // create root node
+        TreeNode n = new TreeNode(postorder[pPostorder--]);
+
+        // if right node exist, create right subtree
+        if (inorder[pInorder] != n.val) {
+            n.right = buildTree(inorder, postorder, n);
+        }
+
+        pInorder--;
+
+        // if left node exist, create left subtree
+        if ((end == null) || (inorder[pInorder] != end.val)) {
+            n.left = buildTree(inorder, postorder, end);
+        }
+
+        return n;
+    }
+
+    public TreeNode buildTree(int[] inorder, int[] postorder) {
+        pInorder = inorder.length - 1;
+        pPostorder = postorder.length - 1;
+
+        return buildTree(inorder, postorder, null);
+    }
+}
