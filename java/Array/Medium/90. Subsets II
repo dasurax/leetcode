@@ -1,0 +1,72 @@
+Given a collection of integers that might contain duplicates, nums, return all possible subsets.
+
+Note: The solution set must not contain duplicate subsets.
+
+For example,
+If nums = [1,2,2], a solution is:
+
+[
+  [2],
+  [1],
+  [1,2,2],
+  [2,2],
+  [1,2],
+  []
+]
+
+# 先排序，然后对于数组中的某一元素，如果出现n次，则该元素可能由n+1（在集合种出现0,1...n次）种情况，类似于求集合幂集时对于每个元素有放入集合和
+# 不放入集合两种情况。因此先将第一个元素可能出现的情况都加入到集合中。对于第二个元素，对于第一个元素出现的每一种情况，都要加上自己的所有情况。
+
+import java.util.Arrays;
+public class Solution {
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        List<List<Integer>> lists = new ArrayList();
+        lists.add(new ArrayList<Integer>());  //先加上空集
+        Arrays.sort(nums);
+        List<Integer> tmp;
+        int count = 1, size = 0;
+        int l = nums.length;
+        for(int i = 0; i < l;) {
+            while(i + count < l && nums[i] == nums[i + count]) {  //通过将count初始化为0并用count的递增取代i的递增，可以避免判断越界情况。
+                count++;
+            }
+            size = lists.size();
+            for(int j = 0; j < size; j++) {
+                tmp = new ArrayList<>(lists.get(j));
+                for(int k = 0; k < count; k++) {
+                    tmp.add(nums[i]);
+                    lists.add(tmp);
+                    tmp = new ArrayList<>(tmp);
+                }
+            }
+            i += count;
+            count = 0;
+        }
+        return lists;
+    }
+}
+
+# 递归算法：在递归中，循环内都是添加一个元素后，进行递归，然后在移除该元素。可以发现，第一层递归实际上是列出所有包含1个元素的子集，
+# 第二层递归实际上是列出所有包含2个元素的子集，依此类推。
+
+public class Solution {
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        Arrays.sort(nums);
+        List<List<Integer>> res = new ArrayList<>();
+        subsetsWithDupHelper(nums, 0, res, new ArrayList<>());
+        return res;
+    }
+    
+    private void subsetsWithDupHelper(int[] nums, int pos, List<List<Integer>> res, List<Integer> tmpRes) {
+        // subset means it does not need contain all elements, so the condition is <= rather than ==
+        // and do not return after this statement
+        if(pos <= nums.length) res.add(new ArrayList<>(tmpRes));
+        
+        for(int i=pos; i<nums.length; i++) {
+            if(i > pos && nums[i] == nums[i-1]) continue;   // avoid duplicates
+            tmpRes.add(nums[i]);
+            subsetsWithDupHelper(nums, i + 1, res, tmpRes);
+            tmpRes.remove(tmpRes.size() - 1);
+        }
+    }
+}
