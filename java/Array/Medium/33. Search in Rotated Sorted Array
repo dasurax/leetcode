@@ -1,0 +1,99 @@
+Suppose an array sorted in ascending order is rotated at some pivot unknown to you beforehand.
+
+(i.e., 0 1 2 4 5 6 7 might become 4 5 6 7 0 1 2).
+
+You are given a target value to search. If found in the array return its index, otherwise return -1.
+
+You may assume no duplicate exists in the array.
+
+# 二分查找：分割的两个子数组有两三种可能，一种是左半部分递增，一种是右半部分递增，一种是都递增。
+
+public class Solution {
+    public int search(int[] nums, int target) {
+        int left = 0, right = nums.length - 1, lpart = 0;
+        int mid;
+        while(left <= right) {
+            mid = (left + right) / 2;
+            if(nums[mid] == target)
+                return mid;
+            if(nums[left] <= nums[mid]) {  //如果左半部分递增，且target在左半部分值域内，则继续在左半部分查找，否则一定在右半部份。
+                if(target <= nums[mid] && target >= nums[left]) {
+                    right = mid - 1;
+                    continue;
+                } else 
+                    lpart = 0;
+            }
+            if(nums[mid] <= nums[right]) { //如果右半部分递增，且target在右半部分值域内，则继续在右半部分查找，否则一定在左半部分。
+                if(target <= nums[right] && target >= nums[mid]) {
+                    left = mid + 1;
+                    continue;
+                } else 
+                    lpart = 1;
+            }
+            if(lpart == 1)
+                right = mid - 1;
+            else
+                left = mid + 1;
+        }
+        return -1;
+    }
+}
+
+# 二分查找另一种较为简洁的写法。
+
+public class Solution {
+    public int search(int[] A, int target) {
+        int lo = 0;
+        int hi = A.length - 1;
+        while (lo < hi) {
+            int mid = (lo + hi) / 2;
+            if (A[mid] == target) return mid;
+
+            if (A[lo] <= A[mid]) {  //如果左半部分递增，且target在左半部分值域内，则继续在左半部分查找，否则一定在右半部分。
+                if (target >= A[lo] && target < A[mid]) {
+                    hi = mid - 1;
+                } else {
+                    lo = mid + 1;
+                }
+            } else {  //如果左半部分非递增，则右半部分一定递增。若target在右半部分值域内，则继续在右半部分查找，否则一定在左半部分。
+                if (target > A[mid] && target <= A[hi]) {
+                    lo = mid + 1;
+                } else {
+                    hi = mid - 1;
+                }
+            }
+        }
+        return A[lo] == target ? lo : -1;
+    }
+}
+
+# 二分查找，先找到数组中的最小值：
+
+public class Solution {
+    public int search(int[] nums, int target) {
+        if(nums.length == 0) return -1;
+        int minIdx = findMinIdx(nums);
+        if (target == nums[minIdx]) return minIdx;
+        int m = nums.length;
+        int start = (target <= nums[m - 1]) ? minIdx : 0;  //如果target<最后元素，说明target在minIdx到m-1之间。
+        int end = (target > nums[m - 1]) ? minIdx - 1 : m - 1;  //如果target>最后元素，说明target在0到minIdx-1之间。
+
+        while (start <= end) {
+            int mid = start + (end - start) / 2;
+            if (nums[mid] == target) return mid;
+            else if (target > nums[mid]) start = mid + 1;
+            else end = mid - 1;
+        }
+        return -1;
+    }
+
+    public int findMinIdx(int[] nums) {
+        int start = 0, end = nums.length - 1;
+        while (start < end) {
+            int mid = start + (end -  start) / 2;
+            if (nums[mid] > nums[end]) start = mid + 1;
+            else end = mid;
+        }
+        return start;
+    }
+}
