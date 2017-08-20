@@ -1,0 +1,67 @@
+Given a 2D board and a word, find if the word exists in the grid.
+
+The word can be constructed from letters of sequentially adjacent cell, where "adjacent" cells are those horizontally or vertically neighboring. The same letter cell may not be used more than once.
+
+For example,
+Given board =
+
+[
+  ['A','B','C','E'],
+  ['S','F','C','S'],
+  ['A','D','E','E']
+]
+word = "ABCCED", -> returns true,
+word = "SEE", -> returns true,
+word = "ABCB", -> returns false.
+
+# 使用递归，注意在进入到下一层递归前，要将当前元素标记为已访问过，在离开当前层之前，要将当前元素改回未访问过。
+# ^= 256（^=是异或操作）是将当前元素变为一个不合法的字符，再^= 256会将不合法的字符变为合法的。
+# 也可以将当前元素变为字母表中不会出现的字符。
+# 注意4个分支只需一个满足分支，即可跳过其他的，否则时间会大幅增长。
+
+class Solution {
+    int coln;
+    int rown; 
+    int wl;
+    public boolean exist(char[][] board, String word) {
+        coln = board[0].length;
+        rown = board.length; 
+        wl = word.length();
+        for(int i = 0; i < rown; i++) {
+            for(int j = 0; j < coln; j++) {
+                if(board[i][j] == word.charAt(0)) {
+                    if(find(i, j, word, 1, board))
+                        return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    public boolean find(int row, int col, String word, int idx, char[][] board) {
+        if(idx >= wl)
+            return true;
+        char tar = word.charAt(idx);
+        int l = col - 1, r = col + 1, t = row - 1, b = row + 1;
+        boolean lb = false, rb = false, tb = false, bb = false, re = false;
+        board[row][col] ^= 256;
+        if(l >= 0 && tar == board[row][l]) {
+            lb = find(row, l, word, idx + 1, board);
+            re = re || lb;
+        }
+        if(!re && r < coln && tar == board[row][r]) {
+            rb = find(row, r, word, idx + 1, board);
+            re = re || rb;
+        }
+        if(!re && t >= 0 && tar == board[t][col]) {
+            tb = find(t, col, word, idx + 1, board);
+            re = re || tb;
+        }
+        if(!re && b < rown && tar == board[b][col]) {
+            bb = find(b, col, word, idx + 1, board);
+            re = re || bb;
+        }
+        board[row][col] ^= 256;
+        return re;
+    }
+}
