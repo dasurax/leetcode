@@ -1,0 +1,86 @@
+Given a char array representing tasks CPU need to do. It contains capital letters A to Z where different letters represent different tasks.Tasks could be done without original order. Each task could be done in one interval. For each interval, CPU could finish one task or just be idle.
+
+However, there is a non-negative cooling interval n that means between two same tasks, there must be at least n intervals that CPU are doing different tasks or just be idle.
+
+You need to return the least number of intervals the CPU will take to finish all the given tasks.
+
+Example 1:
+Input: tasks = ['A','A','A','B','B','B'], n = 2
+Output: 8
+Explanation: A -> B -> idle -> A -> B -> idle -> A -> B.
+Note:
+The number of tasks is in the range [1, 10000].
+The integer n is in the range [0, 100].
+
+# 方法一:Calculating Idle slots。找到出现次数最多的元素，令max_val等于该元素出现次数-1。初始时总idle slots数量为max_val*n。
+# 然后用出现次数较少的元素去填充这些slots。
+# 如[AAABBBCCDDEE],n=2。竖线代表行的划分。AXX|AXX|A -> ABX|ABX|AB -> ABC|ABC|AB。
+# 当所有slot都被填充完毕后，对于更少的元素可以将它们直接放到每行的最后，这样不会影响cooling interval:
+#  -> ABCD|ABCD|AB -> ABCDE|ABCDE|AB。若最终idle_slots为0说明不需要idle，故结果为tasks.length。
+
+public class Solution {
+    public int leastInterval(char[] tasks, int n) {
+        int[] map = new int[26];
+        for (char c: tasks)
+            map[c - 'A']++;
+        Arrays.sort(map);
+        int max_val = map[25] - 1, idle_slots = max_val * n;
+        for (int i = 24; i >= 0 && map[i] > 0; i--) {
+            idle_slots -= Math.min(map[i], max_val);  //Math.min专门针对map[i]（i<25）且map[i]==map[25]的情况，即数量最多元素有多个的情况。
+        }
+        return idle_slots > 0 ? idle_slots + tasks.length : tasks.length;
+    }
+}
+
+# 方法一另一种写法。25-i的值为数量同为最多的元素的个数。如果较少元素不能把slot填满，那么结果就是(c[25] - 1) * (n + 1) + 25 - i)。
+# 如[AAABBBC],n=2。AXXAXXAB,有2个AXX,即c[25]-1=2。AXX长度为3,即n+1=3。最后的AB长度为2，即25-i的值为2。
+# 当slot能填满时，(c[25] - 1) * (n + 1) + 25 - i)这个值显然是小于等于tasks.length，因为没有考虑那些剩余的还没有加到队列种的数。
+
+public class Solution {
+    public int leastInterval(char[] tasks, int n) {
+        int[] c = new int[26];
+        for(char t : tasks){
+            c[t - 'A']++;
+        }
+        Arrays.sort(c);
+        int i = 25;
+        while(i >= 0 && c[i] == c[25]) i--;
+        return Math.max(tasks.length, (c[25] - 1) * (n + 1) + 25 - i);
+    }
+}
+
+# 方法2：优先级队列。按出现次数从高到低的顺序加入到队列。在每一个cooling interval中，每访问到队列的头，将该值取出并减1。如果大于0则暂时保存。
+# 在cooling interval结束后将所有暂时保存的元素重新在加入到队列中去。
+
+public class Solution {
+    public int leastInterval(char[] tasks, int n) {
+        int[] map = new int[26];
+        for (char c: tasks)
+            map[c - 'A']++;
+        PriorityQueue < Integer > queue = new PriorityQueue < > (26, Collections.reverseOrder());
+        for (int f: map) {
+            if (f > 0)
+                queue.add(f);
+        }
+        int time = 0;
+        while (!queue.isEmpty()) {
+            int i = 0;
+            List < Integer > temp = new ArrayList < > ();
+            while (i <= n) {
+                if (!queue.isEmpty()) {
+                    if (queue.peek() > 1)
+                        temp.add(queue.poll() - 1);
+                    else
+                        queue.poll();
+                }
+                time++;  //若queue不为空，time++说明处理了一个任务。若queue为空但temp不空，则time++说明填充了一个idle，因为temp中的任务都是需要等待的。
+                if (queue.isEmpty() && temp.size() == 0)  //说明所有任务都已经处理完了。break跳出内存循环，因为queue和temp均为空，又会跳出外层循环。
+                    break;
+                i++;
+            }
+            for (int l: temp)
+                queue.add(l);
+        }
+        return time;
+    }
+}
