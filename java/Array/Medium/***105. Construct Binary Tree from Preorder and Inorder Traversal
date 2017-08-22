@@ -30,7 +30,12 @@ class Solution {
     }
 }
 
-***# 迭代：
+***
+# 迭代：inorder[0]代表了整棵树中最左边的元素。而前序遍历数组preorder中的最前面的几个数是一颗只由左子树构成的子树，
+# 直到preorder有中有一个数等于inorder[0]，说明到了该由左子树构成的子树已经到了最左边，该构造右子树树了。
+# 如[abdhecfg] [hdbeafcg]。abdh构成了一颗只由左子树构成的子树，并将abd入栈。出栈时当发现栈顶元素不等于inorder[j]时，
+# 如上例中栈顶是a的时候inorder[j]为e，说明e为上一个出栈元素b的右子树。之后会把e作为新的根节点，重复上述过程。
+# 所有已经出栈的元素表明该元素没有右子树或右子树已被处理过。
 
 class Solution {
     public TreeNode buildTree(int[] preorder, int[] inorder) {
@@ -38,7 +43,7 @@ class Solution {
         Stack<TreeNode> s = new Stack<>();
         TreeNode root = new TreeNode(preorder[0]), cur = root;
         for (int i = 1, j = 0; i < preorder.length; i++) {
-            if (cur.val != inorder[j]) {
+            if (cur.val != inorder[j]) {   //这个if会先构成上面所说的只由左子树构成的子树。
                 cur.left = new TreeNode(preorder[i]);
                 s.push(cur);
                 cur = cur.left;
