@@ -1,0 +1,121 @@
+Given an array with n objects colored red, white or blue, sort them so that objects of the same color are adjacent, with the colors in the order red, white and blue.
+
+Here, we will use the integers 0, 1, and 2 to represent the color red, white, and blue respectively.
+
+Note:
+You are not suppose to use the library's sort function for this problem.
+
+click to show follow up.
+
+Follow up:
+A rather straight forward solution is a two-pass algorithm using counting sort.
+First, iterate the array counting number of 0's, 1's, and 2's, then overwrite array with total number of 0's, then 1's and followed by 2's.
+
+Could you come up with an one-pass algorithm using only constant space?
+
+# two-pass algorithm,计数排序：
+
+class Solution {
+    public void sortColors(int A[]) {
+        int num0 = 0, num1 = 0, num2 = 0;
+
+        for(int i = 0; i < A.length; i++) {
+            if (A[i] == 0) ++num0;
+            else if (A[i] == 1) ++num1;
+            else if (A[i] == 2) ++num2;
+        }
+
+        for(int i = 0; i < num0; ++i) A[i] = 0;
+        for(int i = 0; i < num1; ++i) A[num0+i] = 1;
+        for(int i = 0; i < num2; ++i) A[num0+num1+i] = 2;
+    }
+}
+
+# one-pass algorithm，保存最左边的1和2的位置。如果访问到1，则将1和最左边的2交换。如果访问到0，先和最左边的2交换，再和最左边的1交换。
+
+class Solution {
+    public void sortColors(int[] nums) {
+        int left1 = -1, left2 = -1;
+        int l = nums.length, tmp = -1;
+        for(int i = 0; i < l; i++) {
+            if(nums[i] == 0) {
+                if(left2 != -1) {
+                    nums[i] = 2;
+                    tmp = left2;
+                    nums[left2++] = 0;
+                }
+                if(left1 != -1) {
+                    if(tmp == -1)
+                        tmp = i;
+                    nums[tmp] = 1;
+                    nums[left1++] = 0;
+                    tmp = -1;
+                }
+            } else if(nums[i] == 1) {
+                if(left1 == -1) {
+                    left1 = i;
+                }
+                if(left2 != -1) {
+                    nums[i] = 2;
+                    left1 = Math.min(left1, left2);  //只有当1是第一次出现时，left1大于left2，其余情况left1小于left2。
+                    nums[left2++] = 1;
+                }
+            } else if(nums[i] == 2 && left2 == -1) {
+                left2 = i;
+            }
+        }
+    }
+}
+
+# one-pass algorithm，n0,n1,n2保存着最右边的0,1,2。n0,n1,n2都相同说明访问到只有0。n1,n2相同说明访问到的只有0,1，没有2。
+# 当访问到0时，若前面存在1和2,应该将所有的1和2都向后移，同时将0插入，对应的操作就是 A[++n2] = 2; A[++n1] = 1; A[++n0] = 0;
+# 因为最右边的1和2永远在最右边的0的右边，因此除了++n0,还要++n1,++n2。
+# 当访问到1时，因为最右边的2永远在最右边的1的右边，因此除了++n1,还要++n2。
+
+class Solution {
+    public void sortColors(int A[]) {
+        int n0 = -1, n1 = -1, n2 = -1;
+        for (int i = 0; i < A.length; ++i) {
+            if (A[i] == 0) 
+            {
+                A[++n2] = 2; A[++n1] = 1; A[++n0] = 0;
+            }
+            else if (A[i] == 1) 
+            {
+                A[++n2] = 2; A[++n1] = 1;
+            }
+            else if (A[i] == 2) 
+            {
+                A[++n2] = 2;
+            }
+        }
+    }
+}
+
+***
+# 将所有0都移到前面，将所有2都移到后面。
+
+class Solution {
+    public void sortColors(int[] A) {
+        if(A==null || A.length<2) return;
+        int low = 0; 
+        int high = A.length-1;
+        for(int i = low; i<=high;) {
+            if(A[i]==0) {
+              // swap A[i] and A[low] and i,low both ++
+                int temp = A[i];
+                A[i] = A[low];
+                A[low]=temp;
+                i++;low++;
+            }else if(A[i]==2) {
+               //swap A[i] and A[high] and high--;
+                int temp = A[i];
+                A[i] = A[high];
+                A[high]=temp;
+                high--;  //不需要i++。考虑[1,2,0]，i=1,high=2时，交换完变为[1,0,2]，这时high=1，若i++变为2会直接结束循环。
+            }else {
+                i++;
+            }
+        }
+    }
+}
