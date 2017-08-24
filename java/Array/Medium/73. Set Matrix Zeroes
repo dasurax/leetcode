@@ -1,0 +1,66 @@
+Given a m x n matrix, if an element is 0, set its entire row and column to 0. Do it in place.
+
+click to show follow up.
+
+Follow up:
+Did you use extra space?
+A straight forward solution using O(mn) space is probably a bad idea.
+A simple improvement uses O(m + n) space, but still not the best solution.
+Could you devise a constant space solution?
+
+# O(m + n) space, flag[m+n]标识该行或该列是否应该被置为0：
+
+class Solution {
+    public void setZeroes(int[][] matrix) {
+        int row = matrix.length;
+        int col = matrix[0].length;
+        int[] flag = new int[row + col];
+        for(int i = 0; i < row; i++) {
+            for(int j = 0; j < col; j++) {
+                if(matrix[i][j] == 0) {
+                    flag[i] = 1;
+                    flag[row + j] = 1;
+                }
+            }
+        }
+        for(int i = 0; i < row; i++) {
+            if(flag[i] == 1) {
+                for(int j = 0; j < col; j++) {
+                    matrix[i][j] = 0;
+                }
+            }
+        }
+        for(int i = 0; i < col; i++) {
+            if(flag[row + i] == 1) {
+                for(int j = 0; j < row; j++) {
+                    matrix[j][i] = 0;
+                }
+            }
+        }
+    }
+}
+
+# O(1) space：如果该行（该列）中有0，就将该行（该列）的第一个元素为0。因为第0行和第0列共用matrix[0][0]，需要额外的col0。
+# 第二次循环时，从最后一行最后一个元素开始（bottom-up），这样不会影响到前面的。
+# 如果从第一行开始，如matrix[0][0]==0,会把第一行所有元素都置为0（col0==0时同理），会影响到后面的结果。 
+
+class Solution {
+    public void setZeroes(int[][] matrix) {
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+        int col0 = 1;
+        for (int i = 0; i < rows; i++) {
+            if (matrix[i][0] == 0) col0 = 0;
+            for (int j = 1; j < cols; j++)
+                if (matrix[i][j] == 0)
+                    matrix[i][0] = matrix[0][j] = 0;
+        }
+
+        for (int i = rows - 1; i >= 0; i--) {
+            for (int j = cols - 1; j >= 1; j--)
+                if (matrix[i][0] == 0 || matrix[0][j] == 0)
+                    matrix[i][j] = 0;
+            if (col0 == 0) matrix[i][0] = 0;
+        }
+    }
+}
