@@ -1,0 +1,52 @@
+A robot is located at the top-left corner of a m x n grid (marked 'Start' in the diagram below).
+
+The robot can only move either down or right at any point in time. The robot is trying to 
+reach the bottom-right corner of the grid (marked 'Finish' in the diagram below).
+
+How many possible unique paths are there?
+
+
+Above is a 3 x 7 grid. How many possible unique paths are there?
+
+Note: m and n will be at most 100.
+
+# DP: 因为只可能从上方或左边到达某一点[i,j]，因此到达[i,j]的路径数为到达上方点的路径数加上到达左边点的路径数。
+
+class Solution {
+    public int uniquePaths(int m, int n) {
+        int[] tmp = new int[n];
+        tmp[0] = 1;
+        for(int i = 0; i < m; i++) {
+            for(int j = 0; j < n; j++) {
+                if(i == 0 && j != 0) {
+                    tmp[j] = tmp[j - 1];
+                } 
+                if(i != 0 && j != 0) {
+                    tmp[j] += tmp[j - 1];
+                }
+            }
+        }
+        return tmp[n - 1];
+    }
+}
+
+# 数学方法：This is a combinatorial problem and can be solved without DP. 
+# For m * n grid, robot has to move exactly m-1 steps down and n-1 steps right and these can be done in any order.
+# For the eg., given in question, 3x7 matrix, robot needs to take 2+6 = 8 steps with 2 down and 6 right in any order. 
+# That is nothing but a permutation problem. 也就是从m-1+n-1步中选出m-1步向下的操作。
+# decrease both m & n by 1 and apply following formula: total permutations = (m+n)! / (m! * n!)。
+
+class Solution {
+    public int uniquePaths(int m, int n) {
+        if(m == 1 || n == 1)
+            return 1;
+        m -= 1;
+        n -= 1;
+        long res = 1;  // 用long(或double)避免溢出。
+        for(int i = 1; i <= m; i++) {
+            res *= n + i;
+            res /= i;
+        }
+        return (int)res;
+    }
+}
