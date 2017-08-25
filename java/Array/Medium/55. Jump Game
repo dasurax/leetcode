@@ -1,0 +1,54 @@
+Given an array of non-negative integers, you are initially positioned at the first index of the array.
+
+Each element in the array represents your maximum jump length at that position.
+
+Determine if you are able to reach the last index.
+
+For example:
+A = [2,3,1,1,4], return true.
+
+A = [3,2,1,0,4], return false.
+
+# 用一个变量保存当前还能走多少步。若发现某一步的nums[i]大于move，表示可以走更多步，因此用nums[i]替代move。
+
+class Solution {
+    public boolean canJump(int[] nums) {
+        int l = nums.length, move = nums[0];
+        for(int i = 0; i < l; i++) {
+            move = Math.max(move, nums[i]);
+            if(move >= (l - i - 1))
+                return true;
+            if(move == 0 && i < l - 1)
+                return false;
+            move--;
+        }
+        return false;
+    }
+}
+
+# reachable表示从上一步开始最远能到达的地方。显然对于当前步来说，若reachable<i，则不可能到达当前步。
+# 实际上与上面解法思路一样，上面解法中move + i即是reachable。
+
+class Solution {
+    public boolean canJump(int[] nums) {
+        int reachable = 0;
+        for (int i=0; i<nums.length; ++i) {
+            if (i > reachable) return false;
+            reachable = Math.max(reachable, i + nums[i]);
+        }
+        return true;
+    }
+}
+
+# 找到最前面的能跳到最后的位置（Keep track of the smallest index that can "jump" to the last index）。
+# i+A[i]>=last表示从i能够到达last。这样对于更前面来说，只要它能到达i，就可以达到last了，依此类推，找到最前面的。
+
+class Solution {
+    public boolean canJump(int A[]) {
+        int last=A.length-1,i,j;
+        for(i=A.length-2;i>=0;i--){
+            if(i+A[i]>=last)last=i;
+        }
+        return last==0;
+    }
+}
