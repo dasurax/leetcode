@@ -1,0 +1,60 @@
+Given an integer n, generate a square matrix filled with elements from 1 to n2 in spiral order.
+
+For example,
+Given n = 3,
+
+You should return the following matrix:
+[
+ [ 1, 2, 3 ],
+ [ 8, 9, 4 ],
+ [ 7, 6, 5 ]
+]
+
+# 与Spiral Matrix I基本相同，I中是按顺序从二维数组中取数，II中是按同样的顺序写到二维数组中，下标是一样的。
+
+class Solution {
+    public int[][] generateMatrix(int n) {
+        if(n == 0)
+            return new int[0][0];
+        int[][] re = new int[n][n];
+        int count = 0, total = n * n, l = 0, r = n - 1, t = 0, b = n - 1;
+        while(count < total) {
+            for(int i = l; i <= r; i++) {
+                re[t][i] = count + 1;
+                count++;
+            }
+            if(count >= total) break;
+            t++;
+            for(int i = t; i <= b; i++) {
+                re[i][r] = count + 1;
+                count++;
+            }
+            if(count >= total) break;
+            r--;
+            for(int i = r; i >= l; i--) {
+                re[b][i] = count + 1;
+                count++;
+            }
+            if(count >= total) break;
+            b--;
+            for(int i = b; i >= t; i--) {
+                re[i][l] = count + 1;
+                count++;
+            }
+            if(count >= total) break;
+            l++;
+        }
+        return re;
+    }
+}
+
+***
+# python解法：https://discuss.leetcode.com/topic/19130/4-9-lines-python-solutions
+# zip(*A[::-1])会将数组翻转90度，A[::-1]是将数组按第一维度翻转，如[[6,7],[9,8]]变为[[9,8],[6,7]]。
+
+def generateMatrix(self, n):
+    A, lo = [], n*n+1
+    while lo > 1:
+        lo, hi = lo - len(A), lo
+        A = [range(lo, hi)] + zip(*A[::-1])
+    return A
