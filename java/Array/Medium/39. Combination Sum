@@ -42,7 +42,7 @@ class Solution {
     }
 }
 
-# 可以将上面循环中的判断条件放到外面，简化循环内部：
+# 可以将上面循环中的判断条件放到外面，简化循环内部(但速度较慢)：
 
 class Solution {
     List<List<Integer>> lists = new ArrayList();
