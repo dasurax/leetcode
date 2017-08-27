@@ -56,7 +56,10 @@ class Solution {
     
     public void combine(int[] candidates, List<Integer> tmp, int target, int start) {
         if(target < 0) return;
-        else if(target == 0) lists.add(new ArrayList<>(tmp));
+        if(target == 0) {
+            lists.add(new ArrayList<>(tmp));
+            return;
+        }
         for(int i = start; i < l; i++) {
             tmp.add(candidates[i]);
             combine(candidates, new ArrayList(tmp), target - candidates[i], i);
