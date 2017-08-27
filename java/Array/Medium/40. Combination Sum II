@@ -1,0 +1,70 @@
+Given a collection of candidate numbers (C) and a target number (T), find all unique combinations in C where the candidate numbers sums to T.
+
+Each number in C may only be used once in the combination.
+
+Note:
+All numbers (including target) will be positive integers.
+The solution set must not contain duplicate combinations.
+For example, given candidate set [10, 1, 2, 7, 6, 1, 5] and target 8, 
+A solution set is: 
+
+# 与Combination Sum I代码几乎一样，唯一需要注意的是允许数组中出现相同的元素，但每个元素只能用一遍。
+# 此外，如上例中数组中有两个1,为了避免出现多个[1,7]的情况，需要跳过重复的数：
+
+class Solution {
+    List<List<Integer>> lists = new ArrayList();
+    int l;
+    public List<List<Integer>> combinationSum2(int[] candidates, int target) {
+        Arrays.sort(candidates);
+        l = candidates.length;
+        combine(candidates, new ArrayList(), target, 0);
+        return lists;
+    }
+    
+    public void combine(int[] candidates, List<Integer> tmp, int target, int start) {
+        for(int i = start; i < l; i++) {
+            if(target == candidates[i]) {
+                tmp.add(candidates[i]);
+                lists.add(tmp);
+                break;
+            } else if(target > candidates[i]) {
+                tmp.add(candidates[i]);
+                combine(candidates, new ArrayList(tmp), target - candidates[i], i + 1);
+                tmp.remove(tmp.size() - 1);
+            } else {
+                break;  
+            }
+            while(i < l - 1 && candidates[i] == candidates[i + 1])  //跳过重复的数。
+                i++;
+                
+        }
+    }
+}
+
+# 同样，将上面循环中的判断条件放到外面，简化循环内部(但速度较慢)：
+
+class Solution {
+    List<List<Integer>> lists = new ArrayList();
+    int l;
+    public List<List<Integer>> combinationSum2(int[] candidates, int target) {
+        Arrays.sort(candidates);
+        l = candidates.length;
+        combine(candidates, new ArrayList(), target, 0);
+        return lists;
+    }
+    
+    public void combine(int[] candidates, List<Integer> tmp, int target, int start) {
+        if(target < 0) return;
+        if(target == 0) {
+            lists.add(new ArrayList<>(tmp));
+            return;
+        }
+        for(int i = start; i < l; i++) {
+            tmp.add(candidates[i]);
+            combine(candidates, new ArrayList(tmp), target - candidates[i], i + 1);
+            tmp.remove(tmp.size() - 1);
+            while(i < l - 1 && candidates[i] == candidates[i + 1])  //跳过重复的数。
+                i++;
+        }
+    }
+}
