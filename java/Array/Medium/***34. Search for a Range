@@ -1,0 +1,162 @@
+Given an array of integers sorted in ascending order, find the starting and ending position of a given target value.
+
+Your algorithm's runtime complexity must be in the order of O(log n).
+
+If the target is not found in the array, return [-1, -1].
+
+For example,
+Given [5, 7, 7, 8, 8, 10] and target value 8,
+return [3, 4].
+
+# 递归1：二分查找各自子数组中的targrt的范围，然后在合并结果。
+
+class Solution {
+    public int[] searchRange(int[] nums, int target) {
+        if(nums.length == 0)
+            return new int[] {-1, -1};
+        return binary(nums, target, 0, nums.length - 1);       
+    }
+    
+    public int[] binary(int[] nums, int target, int start, int end) {
+        int[] range = {-1, -1};
+        if(nums[start] == nums[end]) {
+            if(nums[start] == target) {  //如果子数组起点和终点一样，若等于target，则整个子数组都在范围内，否则都不在范围内。
+                range[0] = start; range[1] = end;
+            }
+            return range;
+        }
+        int mid = (start + end) / 2;
+        int[] lrange = binary(nums, target, start, mid);
+        int[] rrange = binary(nums, target, mid + 1, end);
+        if(lrange[0] > rrange[0]) {  //说明左子数组存在target,右子数组不存在，则直接取左子数组范围。
+            range[0] = lrange[0];
+            range[1] = lrange[1];
+        } else if(lrange[0] != - 1){  //说明左、右子数组都存在target,则直接取左子数组左边界和右子数组右边界。
+            range[0] = lrange[0];
+            range[1] = rrange[1];
+        } else if(rrange[0] != - 1){  //说明右子数组存在target,左子数组不存在，则直接取右子数组范围。
+            range[0] = rrange[0];
+            range[1] = rrange[1];
+        }
+        return range;
+    }
+}
+
+***
+# 递归2：range初始化{A.length, -1}，当在数组中第一次找到了target后，range[0,1]都会被置为该位置。
+# 之后在左半边查找，找到了且比range[0]小就修改range[0]；再在右半边查找，找到了且比range[1]大就修改range[1]。
+# 关键在于将range作为参数传递并修改。
+
+public class Solution {
+    public int[] searchRange(int[] A, int target) {
+        int[] range = {A.length, -1};
+        searchRange(A, target, 0, A.length - 1, range);
+        if (range[0] > range[1]) range[0] = -1; 
+        return range;
+    }
+    
+    public void searchRange(int[] A, int target, int left, int right, int[] range) {
+        if (left > right) return;
+        int mid = left + (right - left) / 2;
+        if (A[mid] == target) {
+            if (mid < range[0]) {
+                range[0] = mid;
+                searchRange(A, target, left, mid - 1, range);
+            }
+            if (mid > range[1]) {
+                range[1] = mid;
+                searchRange(A, target, mid + 1, right, range);
+            }
+        } else if (A[mid] < target) {
+            searchRange(A, target, mid + 1, right, range);
+        } else {
+            searchRange(A, target, left, mid - 1, range);
+        }
+    }
+}
+
+***
+# 迭代1：先找到target的起始位置，再找到target+1的起始位置，并将target+1的起始位置-1。
+# 实际上是find the first number that is greater than or equal to target。
+
+public class Solution {
+	public int[] searchRange(int[] A, int target) {
+		int start = Solution.firstGreaterEqual(A, target);
+		if (start == A.length || A[start] != target) {  //第一个条件意味着target大于数组中所有元素，会出现这种情况是因为
+			return new int[]{-1, -1};                     //firstGreaterEqual里high=A.length而不是high=A.length-1。后者start为A.length-1。
+		}
+    // 通过上面的if说明肯定有元素等于target，若target是数组最后一个元素，target + 1位置不存在，会返回A.length，再减去1即得到答案。
+    // 若target不是数组最后一个元素，返回的是第一个大于或等于target+1的元素，也就是最后一个target后面的元素。
+		return new int[]{start, Solution.firstGreaterEqual(A, target + 1) - 1};
+	}
+
+	//find the first number that is greater than or equal to target.
+	//could return A.length if target is greater than A[A.length-1].
+	//actually this is the same as lower_bound in C++ STL.
+	private static int firstGreaterEqual(int[] A, int target) {
+		int low = 0, high = A.length;
+		while (low < high) {
+			int mid = low + ((high - low) >> 1);
+			//low <= mid < high
+			if (A[mid] < target) {
+				low = mid + 1;
+			} else {
+				// 这里有两种可能，一是大于，一是等于，因为若是等于的情况，有可能mid是最左边的，也可能不是，
+        // 因此high不能为mid-1，要把mid是最左边的情况考虑进去，因此high为mid。
+				high = mid;
+			}
+		}
+		return low;
+	}
+}
+
+***
+# 迭代2：两个二分查找分别找到最左边和最右边的target。
+
+public class Solution {
+   public  int[] searchRange(int[] nums, int target) {
+        int hi = nums.length - 1;
+        int low = 0;
+        int[] rs = new int[2];
+       // base case
+        if(nums == null || nums.length == 0)
+            return new int[]{-1, -1 };
+
+       //left side
+        while(low < hi){
+            int mid = low + (hi - low) /2;
+            if(target > nums[mid]){
+                low = mid + 1;
+            }else{
+                hi = mid;
+            }
+        }
+        if(target == nums[low]){
+            rs[0] = low;
+        }else{
+            rs[0] = -1;
+            rs[1] = -1;
+            return rs;
+        }
+
+        //right side
+        hi = nums.length - 1;
+        while(low < hi){
+            int mid = (low + (hi - low) /2 ) + 1;  //注意这里的+1，因为当子数组长度为偶数时，mid永远会偏左，因此+1让mid偏右，
+                                                    //对于[1,2],target=2的情况,mid一直为0，low又不断置为mid，会造成死循环。
+
+            if(target < nums[mid]){
+                hi = mid - 1;
+            }else{
+                low = mid;
+            }
+        }   
+        if(target == nums[hi]){
+            rs[1] = hi;
+        }else{
+            rs[1] = -1;
+        }
+
+        return rs;
+    }
+}
