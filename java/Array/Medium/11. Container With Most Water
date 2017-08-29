@@ -1,0 +1,26 @@
+Given n non-negative integers a1, a2, ..., an, where each represents a point at coordinate (i, ai). 
+n vertical lines are drawn such that the two endpoints of line i is at (i, ai) and (i, 0). 
+Find two lines, which together with x-axis forms a container, such that the container contains the most water.
+
+Note: You may not slant the container and n is at least 2.
+
+# 从两端开始（最宽的情况），并缩减宽度，此时若我们想要获得更大的容积，则必须增加高度。
+# 若左端小于右端，显然此时面积的最小值为(right-left)*h[left],这时若减少right，则此时面积的最大值为(right-left-1)*h[left]。
+# 也就是说若我们通过移动较大的那一边来缩减宽度，结果只会越来越小。
+# 如第二行所述，容器的高度本来就是由h[left]决定，这时若移动right，则容器的高度并不会增加。
+# 若移动left,因为h[left+1]可能会大于left的，所以容器高度可能会增加。
+# 更多证明可参考discuss。
+
+class Solution {
+    public int maxArea(int[] height) {
+        int left = 0, right = height.length - 1, max = 0;
+        while(left < right) {
+            max = Math.max(max, (right - left) * Math.min(height[left], height[right]));
+            if(height[left] < height[right])
+                left++;
+            else
+                right--;
+        }
+        return max;
+    }
+}
