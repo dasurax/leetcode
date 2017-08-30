@@ -1,0 +1,42 @@
+Given an array consists of non-negative integers, your task is to count the number of triplets chosen from the array that can make triangles if we take them as side lengths of a triangle.
+
+Example 1:
+Input: [2,2,3,4]
+Output: 3
+Explanation:
+Valid combinations are: 
+2,3,4 (using the first 2)
+2,3,4 (using the second 2)
+2,2,3
+Note:
+The length of the given array won't exceed 1000.
+The integers in the given array are in the range of [0, 1000].
+
+******
+# 数组排序后对外层循环从后往前遍历，对于内层循环，如果nums[left]+nums[right]>nums[i]，
+# 说明对于left+1到right-1的所有元素加上nums[right]都大于nums[i]，
+# 因此count直接加上right-left，同时right--，这里要注意right--和left++的位置，二者位置不能互换，因为：
+# count直接加上right-left，表示的是{nums[left]...nums[right-1]}+nums[right]满足条件，而不是nums[left]+{nums[left+1]...nums[right]}满足条件。
+# 也就是说已经遍历完了nums[right]的所有情况，可以right--，而不是已经遍历完了nums[left]的所有情况。
+
+class Solution {
+    public int triangleNumber(int[] nums) {
+        int l = nums.length;
+        if(l < 3) return 0;
+        Arrays.sort(A);
+        int c = 0, left, right;
+        for(int i = l - 1; i >= 2; i--) {
+            left = 0;
+            right = i - 1;
+            while(left < right) {
+                if(nums[left] + nums[right] > nums[i]) {
+                    c += right - left;
+                    right--;
+                } else {
+                    left++;
+                }
+            }
+        }
+        return c;
+    }
+}
