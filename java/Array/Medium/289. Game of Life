@@ -1,0 +1,47 @@
+According to the Wikipedia's article: "The Game of Life, also known simply as Life, is a cellular automaton devised by the British mathematician John Horton Conway in 1970."
+
+Given a board with m by n cells, each cell has an initial state live (1) or dead (0). Each cell interacts with its eight neighbors (horizontal, vertical, diagonal) using the following four rules (taken from the above Wikipedia article):
+
+Any live cell with fewer than two live neighbors dies, as if caused by under-population.
+Any live cell with two or three live neighbors lives on to the next generation.
+Any live cell with more than three live neighbors dies, as if by over-population..
+Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
+Write a function to compute the next state (after one update) of the board given its current state.
+
+Follow up: 
+Could you solve it in-place? Remember that the board needs to be updated at the same time: You cannot update some cells first and then use their updated values to update other cells.
+In this question, we represent the board using a 2D array. In principle, the board is infinite, which would cause problems when the active area encroaches the border of the array. How would you address these problems?
+
+# 因为初始设置live为1，dead为0,可以将1视为01,0视为00，计算周围live数时用第一位，而下一个状态保存在第二位中。
+
+class Solution {
+    public void gameOfLife(int[][] board) {
+        int rows = board.length, cols = board[0].length;
+        for(int i = 0; i < rows; i++) {
+            for(int j = 0; j < cols; j++) {
+                int lives = countLives(board, rows, cols, i, j);
+                if(board[i][j] == 1 && (lives == 2 || lives == 3)) {
+                    board[i][j] = 3;
+                } else if(board[i][j] == 0 && lives == 3) {
+                    board[i][j] = 2;
+                }
+            }
+        }
+        for(int i = 0; i < rows; i++) {
+            for(int j = 0; j < cols; j++) {
+                board[i][j] = board[i][j] >> 1;  //右移一位即提取出第二位。
+            }
+        }
+    }
+    
+    public int countLives(int[][] board, int rows, int cols, int i, int j) {
+        int lives = 0;
+        for(int x = Math.max(0, i - 1); x <= Math.min(i + 1, rows - 1); x++) {
+            for(int y = Math.max(0, j - 1); y <= Math.min(j + 1, cols - 1); y++) {
+                lives += board[x][y] & 1;  //&1操作判断第一位是0还是1。
+            }
+        }
+        lives -= board[i][j] & 1;  //不要忘了减去自己。
+        return lives;
+    }
+}
