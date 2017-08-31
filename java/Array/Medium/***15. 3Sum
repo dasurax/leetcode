@@ -21,7 +21,7 @@ class Solution {
         if (num.length < 3) return res;
         Arrays.sort(num);
         for (int i = 0; i < num.length-2; i++) {
-            if (num[i] <= 0 && i == 0 || (i > 0 && num[i] != num[i-1])) { //注意这里要跳过重复的元素。
+            if (num[i] <= 0 && (i == 0 || num[i] != num[i-1])) { //注意这里要跳过重复的元素。
                 int lo = i+1, hi = num.length-1, sum = 0 - num[i];
                 while (lo < hi) {  //转换为target为0 - num[i]的2 sum问题分。
                     if (num[lo] + num[hi] == sum) {
