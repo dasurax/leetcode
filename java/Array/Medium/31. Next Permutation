@@ -1,0 +1,41 @@
+Implement next permutation, which rearranges numbers into the lexicographically next greater permutation of numbers.
+
+If such arrangement is not possible, it must rearrange it as the lowest possible order (ie, sorted in ascending order).
+
+The replacement must be in-place, do not allocate extra memory.
+
+Here are some examples. Inputs are in the left-hand column and its corresponding outputs are in the right-hand column.
+1,2,3 → 1,3,2
+3,2,1 → 1,2,3
+1,1,5 → 1,5,1
+
+# 因为是按字典序，应该找到最后面的使nums[i-1]<nums[i]的数i，如第一例中的3，第三例中的5，第二例不存在，则i最终为0。
+# 之后我们需要找到字典序中紧跟在nums[i-1]后面的那个数来替换它，也就是从i到数组最后元素中（这一部分一定递减）大于nums[i-1]的最小的数。
+# 最后把从i到数组最后的部分reverse。
+
+class Solution {
+    public void nextPermutation(int[] nums) {
+        int l = nums.length, i = l - 1;
+        for(; i > 0; i--) {
+            if(nums[i] > nums[i - 1]) {
+                int tmp = nums[i - 1];
+                int j = l - 1;
+                while(nums[i - 1] >= nums[j]) {
+                    j--;
+                }
+                nums[i - 1] = nums[j];
+                nums[j] = tmp;
+                break;
+            }
+        }
+        reverse(nums, i, l - 1);
+    }
+    
+    public void reverse(int[] nums, int start, int end) {
+        while(start <= end) {
+            int tmp = nums[start];
+            nums[start++] = nums[end];
+            nums[end--] = tmp;
+        }
+    }
+}
