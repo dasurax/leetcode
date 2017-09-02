@@ -1,0 +1,45 @@
+Given an integer array of size n, find all elements that appear more than ⌊ n/3 ⌋ times. 
+The algorithm should run in linear time and in O(1) space.
+
+******
+# Boyer-Moore Majority Vote algorithm，与more than ⌊ n/2 ⌋的条件相比，最终结果可能有两个，因此需要两组变量来保存结果。
+# 第一次遍历找到候选，第二次遍历验证候选。当不存在Majority时，第二次遍历会淘汰所有候选。
+# 该算法一种简单的理解是：最后的else分支表示，如果当前访问到的元素既不是a也不是b，那就各自抵消掉一个a和b，也就是三个互不相同的数相互抵消。
+# 当所有能抵消的都抵消了，这时剩下的数组元素最多包含两个互不相同的数，而这些数也是解的候选。
+# 因为此时所有被抵消的数出现次数都小于等于n/3次，若这些数不包含在最后抵销完的数组中，那它们的出现次数也就不可能大于n/3了。
+
+class Solution {
+    public List<Integer> majorityElement(int[] nums) {
+        int a = 0, b = 0, na = 0, nb = 0, l = nums.length;
+        List<Integer> list = new ArrayList();
+        for(int num: nums) {
+            if(b == num){
+                nb++;
+            } else if(a == num){
+                na++;
+            } else if(na == 0) {
+                a = num;
+                na = 1;
+            } else if(nb == 0) {
+                b = num;
+                nb = 1;
+            } else {
+                na--;
+                nb--;
+            }
+        }
+        na = 0;
+        nb = 0;
+        for(int num: nums) {
+            if(num == a)
+                na++;
+            else if(num == b)
+                nb++;
+        }
+        if(na > l / 3)
+            list.add(a);
+        if(nb > l / 3 )
+            list.add(b);
+        return list;
+    }
+}
