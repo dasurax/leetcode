@@ -1,0 +1,74 @@
+Given an array nums containing n + 1 integers where each integer is between 1 and n (inclusive), prove that at least one duplicate number must exist. Assume that there is only one duplicate number, find the duplicate one.
+
+Note:
+You must not modify the array (assume the array is read only).
+You must use only constant, O(1) extra space.
+Your runtime complexity should be less than O(n2).
+There is only one duplicate number in the array, but it could be repeated more than once.
+
+*********
+# O(n),Cycle Detection问题，具体解法见：http://keithschwarz.com/interesting/code/?dir=find-duplicate。
+# 注意一点，链接中fast和slow从l-1开始，是因为元素范围从0到l-2，这样就不存在nums[i]=l-1。
+# 而本题中元素范围从1到l，且,因此有可能右nums[i]=l，但不存在nums[i]=0,因此fast和slow从0开始。
+
+class Solution {
+    public int findDuplicate(int[] nums) {
+        int l = nums.length;
+        int fast = 0, slow = 0;
+        while(true) {
+            fast = nums[nums[fast]];
+            slow = nums[slow];
+            if(fast == slow) 
+                break;
+        }
+        slow = 0;
+        while(true) {
+            fast = nums[fast];
+            slow = nums[slow];
+            if(fast == slow)
+                break;
+        }
+        return slow;
+    }
+}
+
+# 简化版：
+
+class Solution {
+    public int findDuplicate(int[] nums) {
+        int fast = nums[nums[0]], slow = nums[0];
+        while(fast != slow) {
+            fast = nums[nums[fast]];
+            slow = nums[slow];
+        }
+        slow = 0;
+        while(fast != slow) {
+            fast = nums[fast];
+            slow = nums[slow];
+        }
+        return slow;
+    }
+}
+
+******
+# O(nlogn)解法：初始解范围为[1,n]，先取mid=(1+n)/2，然后遍历数组，统计小于等于mid的，若统计数量大于mid，根据鸽巢原理,
+# 重复的数一定在[1,mid]范围内，之后继续折半查找。
+
+class Solution {
+    public int findDuplicate(int[] nums) {
+        int low = 1, high = nums.length - 1;  //范围从1到n
+        while(low < high) {
+            int mid = (low + high) / 2, c = 0;
+            for(int num: nums) {
+                if(num <= mid)
+                    c++;
+            }
+            if(c > mid) {
+                high = mid;
+            } else {
+                low = mid + 1;
+            }
+        }
+        return low;
+    }
+}
