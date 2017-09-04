@@ -1,0 +1,67 @@
+Write a function to find the longest common prefix string amongst an array of strings.
+
+# O(nk)，k为最长公共前缀的长度。
+# 外层循环对字符串下标遍历，内层循环对字符串数组遍历，当某一字符串长度小于i，则最长公共前缀的长度不可能再增加了，因此跳出循环。
+
+class Solution {
+    public String longestCommonPrefix(String[] strs) {
+        if(strs.length == 0) return "";
+        if(strs.length == 1) return strs[0];
+        String re = "";
+        char pre;
+        for(int i = 0;; i++) {
+            pre = ' ';
+            for(String str: strs) {
+                if(str.length() <= i)
+                    return re;
+                if(pre == ' ')
+                    pre = str.charAt(i);
+                else if(pre != str.charAt(i))
+                    return re;
+            }
+            re += pre;
+        }
+    }
+}
+
+# O(nlogn*k)。先将字符串数组排序，然后找到第一个和最后一个字符串的公共前缀：
+
+class Solution {
+    public String longestCommonPrefix(String[] strs) {
+        StringBuilder result = new StringBuilder();
+        
+        if (strs!= null && strs.length > 0){
+        
+            Arrays.sort(strs);
+            
+            char [] a = strs[0].toCharArray();
+            char [] b = strs[strs.length-1].toCharArray();
+            
+            for (int i = 0; i < a.length; i ++){
+                if (b.length > i && b[i] == a[i]){
+                    result.append(b[i]);
+                }
+                else {
+                    return result.toString();
+                }
+            }
+        return result.toString();
+    }
+}
+
+# 取pre为第一个字符串，然后看第二个字符串是否包含pre，不包含说明pre不是最长的，将pre长度减少，直到包含为止。
+# 也就是先找到第一个和第二个字符串的最长前缀，然后用这个前缀去和第三个字符串比较，依此类推。
+
+class Solution {
+    public String longestCommonPrefix(String[] strs) {
+        if(strs == null || strs.length == 0)    return "";
+        String pre = strs[0];
+        int i = 1;
+        while(i < strs.length){
+            while(strs[i].indexOf(pre) != 0)
+                pre = pre.substring(0, pre.length()-1);
+            i++;
+        }
+        return pre;
+    }
+}
