@@ -1,0 +1,64 @@
+Given a string containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.
+
+The brackets must close in the correct order, "()" and "()[]{}" are all valid but "(]" and "([)]" are not.
+
+# 使用栈。注意要判断栈顶是否为空，否则这样的"()))"会越界。
+
+class Solution {
+    public boolean isValid(String s) {
+        int l = s.length(), top = 0;
+        if(l == 0)
+            return true;
+        if(l % 2 != 0)
+            return false;
+        char[] stack = new char[l];
+        stack[0] = s.charAt(0);
+        for(int i = 1; i < l; i++) {
+            switch(s.charAt(i)) {
+                case ')': 
+                    if(top >= 0 && stack[top--] == '(') {
+                        break;
+                    } else {
+                        return false;
+                    }
+                case ']': 
+                    if(top >= 0 && stack[top--] == '[') {
+                        break;
+                    } else {
+                        return false;
+                    }
+                case '}': 
+                    if(top >= 0 && stack[top--] == '{') {
+                        break;
+                    } else {
+                        return false;
+                    }
+                default: stack[++top] = s.charAt(i);
+            }
+        }
+        return top >= 0 ? false : true;
+    }
+}
+
+# 使用JAVA自带的Stack和s.toCharArray()方法。
+# 注意这里有一个trick，在遇到([{时push)]}，而不是([{本身，当遇到)]}时，就不用分情况讨论栈顶的是什么元素，
+# 只需要判断栈顶是否为)]}本身（stack.pop() != c）。
+
+class Solution {
+    public boolean isValid(String s) {
+        if(s.length() % 2 != 0)
+            return false;
+        Stack<Character> stack = new Stack<Character>();
+        for (char c : s.toCharArray()) {
+            if (c == '(')
+                stack.push(')');
+            else if (c == '{')
+                stack.push('}');
+            else if (c == '[')
+                stack.push(']');
+            else if (stack.isEmpty() || stack.pop() != c)
+                return false;
+        }
+        return stack.isEmpty();
+    }
+}
