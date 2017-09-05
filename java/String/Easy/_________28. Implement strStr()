@@ -1,0 +1,64 @@
+Implement strStr().
+
+Returns the index of the first occurrence of needle in haystack, or -1 if needle is not part of haystack.
+
+# 实际上是实现indexOf()。
+# 传统算法O(n*m)。
+# KMP算法：O(m+n)。核心是找到每一个从的头开始的子串中，最长的那个既是proper prefix，又是proper suffix的子串（前面所述的子串的子串）的长度。
+# 如"abcdabc"，对于"ab"，不存在既是proper prefix，又是proper suffix的子串，长度为0。
+# 对于"abcdab"，"ab"既是它的proper prefix，又是proper suffix，且是最长的，长度为2。
+# 对于"abcdabc"，"acb"既是它的proper prefix，又是proper suffix，且是最长的，长度为3。
+# 这样当我们匹配到某一个长度的字符串时，比如已经匹配了"abcdab"（长度为6），当最后一个字符匹配失败时（设待匹配字符串为"...abcdabz..."），
+# 传统算法会从待匹配字符串的第二个字符b开始重新匹配，已匹配的长度被重置为0，
+# 但KMP算法可以根据之前所求的长度（2），选择跳过一部分，已匹配的长度被重置为2，也就是相当于待匹配字符串中的第二个ab已经被匹配了，接着要匹配z和c,
+# KMP算法中，失败后指针一直指向z,且匹配长度从2开始，而传统算法中失败后指针会指向第一个b，且匹配长度置为0，这也是为什么KMP算法高效。
+# 解释：http://jakeboxer.com/blog/2009/12/13/the-knuth-morris-pratt-algorithm-in-my-own-words/
+# 实现：http://www.geeksforgeeks.org/searching-for-patterns-set-2-kmp-algorithm/
+
+class Solution {
+    public int strStr(String haystack, String needle) {
+        int ls = haystack.length(), ln = needle.length(), j = 0;
+        if(ln == 0)
+            return 0;
+        int[] arr = new int[ln];
+        cal(needle, arr, ln); 
+        for(int i = 0; i < ls; ) {
+            if(i + ln - j > ls)
+                return -1;
+            if(haystack.charAt(i) == needle.charAt(j)) {
+                j++;  //这里j++的次数不会超过i++的次数，也就是不会超过ln。
+                i++;
+                if(j == ln)
+                    return i - j;
+            } else {
+                if(j != 0)
+                    j = arr[j - 1];  //只有该分支不会对i累加，根据上面所说j不会超过ln，且arr[j - 1]一定小于j，因此该语句执行次数不会超过n,
+                else                  //因此整个循环复杂度为O(n)，同理下面cal中构造table的复杂度为O(m)，所以整个算法复杂度为O(m+n)。
+                    i++;
+            }
+        }
+        return -1;
+    }
+    
+    // 对模式串构造前面所说的“长度”，也叫partial match table，构造该表的过程其实与kmp的思想是一样的，即用后缀去匹配前缀：
+    // 如"aacdaaa",假设我们已经求"aacdaa"的"长度"为2,当我们准备求"abcdaaa"的"长度"时，我们用更长(长度为3)的后缀aaa去匹配前缀aac，
+    // 这时aac和aaa匹配失败，我们也希望从某一点恢复匹配而不是从新开始匹配，因此我们查看len = arr[len - 1]，也就是"aa"的"长度"，值为1，
+    // 这就意味着我们可以从长度为1的地方继续匹配。
+    // 更为明显的例子可以写出"abababca"的处理过程（第一个链接中的例子）。
+    public void cal(String pattern, int[] arr, int l) {
+        int len = 0;
+        arr[0] = 0;
+        for(int i = 1; i < l;) {
+            if(pattern.charAt(i) == pattern.charAt(len)) {
+                len++;
+                arr[i++] = len;
+            } else {
+                if(len != 0) {
+                    len = arr[len - 1];
+                } else {
+                    arr[i++] = 0;
+                }
+            }
+        }
+    }
+}
