@@ -1,0 +1,56 @@
+Given two binary strings, return their sum (also a binary string).
+
+For example,
+a = "11"
+b = "1"
+Return "100".
+
+# Easy One
+
+class Solution {
+    public String addBinary(String a, String b) {
+        String tmp;
+        StringBuilder sum = new StringBuilder();
+        int add = 0;
+        if(a.length() < b.length()) {
+            tmp = a;
+            a = b;
+            b = tmp;
+        }
+        int i = a.length() - 1, j = b.length() - 1;
+        while(j >= 0) {
+            add += a.charAt(i--) - '0' + b.charAt(j--) - '0';
+            sum.insert(0, (char)add % 2);
+            add /= 2;
+        }
+        while(i >= 0) {
+            add += a.charAt(i--) - '0';
+            sum.insert(0, (char)add % 2);
+            add /= 2;
+        }
+        if(add == 1) 
+            sum.insert(0, "1");
+        i = 0;
+        while(i < sum.length() - 1 && sum.charAt(i) == '0')
+            i++;
+        return sum.substring(i); 
+    }
+}
+
+# 也可以将两个while合并为一个，用sum分开加a和b，而不是像上面那样放到一条语句中。
+
+public class Solution {
+    public String addBinary(String a, String b) {
+        StringBuilder sb = new StringBuilder();
+        int i = a.length() - 1, j = b.length() -1, carry = 0;
+        while (i >= 0 || j >= 0) {
+            int sum = carry;
+            if (j >= 0) sum += b.charAt(j--) - '0';
+            if (i >= 0) sum += a.charAt(i--) - '0';
+            sb.append(sum % 2);
+            carry = sum / 2;
+        }
+        if (carry != 0) sb.append(carry);
+        return sb.reverse().toString();
+    }
+}
