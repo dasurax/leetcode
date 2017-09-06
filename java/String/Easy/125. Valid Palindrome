@@ -20,10 +20,8 @@ class Solution {
             rc = Character.toLowerCase(s.charAt(right));
             if(!Character.isLetterOrDigit(lc)) {
                 left++;
-                continue;
             } else if(!Character.isLetterOrDigit(rc)) {
                 right--;
-                continue;
             } else if(lc != rc)
                 return false;
             left++;
