@@ -1,0 +1,34 @@
+Write a function that takes a string as input and reverse only the vowels of a string.
+
+Example 1:
+Given s = "hello", return "holle".
+
+Example 2:
+Given s = "leetcode", return "leotcede".
+
+Note:
+The vowels does not include the letter "y".
+
+# Valid Palindrome问题的变体。
+
+class Solution {
+    public String reverseVowels(String s) {
+        char[] re = s.toCharArray();
+        int left = 0, right = s.length() - 1;
+        char lc, rc, tmp;
+        while(left <= right) {
+            lc = Character.toLowerCase(re[left]);
+            rc = Character.toLowerCase(re[right]);
+            if(!(lc == 'a' || lc == 'e' || lc == 'i' || lc == 'o' || lc == 'u')) {
+                left++;
+            } else if(!(rc == 'a' || rc == 'e' || rc == 'i' || rc == 'o' || rc == 'u')) {
+                right--;
+            } else {
+                tmp = re[right];
+                re[right--] = re[left];
+                re[left++] = tmp;
+            }
+        }
+        return new String(re);
+    }
+}
