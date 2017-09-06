@@ -1,0 +1,20 @@
+Write a function that takes a string as input and returns the string reversed.
+
+Example:
+Given s = "hello", return "olleh".
+
+# toCharArray将String转为char[]数组。
+
+class Solution {
+    public String reverseString(String s) {
+        int l = s.length();
+        char[] re = s.toCharArray();
+        char tmp;
+        for(int i = 0; i < l / 2; i++) {
+            tmp = re[i];
+            re[i] = re[l - 1 - i];
+            re[l - 1 - i] = tmp;
+        }
+        return new String(re);
+    }
+}
