@@ -1,0 +1,63 @@
+Given a word, you need to judge whether the usage of capitals in it is right or not.
+
+We define the usage of capitals in a word to be right when one of the following cases holds:
+
+All letters in this word are capitals, like "USA".
+All letters in this word are not capitals, like "leetcode".
+Only the first letter in this word is capital if it has more than one letter, like "Google".
+Otherwise, we define that this word doesn't use capitals in a right way.
+Example 1:
+Input: "USA"
+Output: True
+Example 2:
+Input: "FlaG"
+Output: False
+
+# 正则表达式：
+
+class Solution {
+    public boolean detectCapitalUse(String word) {
+        return word.matches("[A-Z]+|[a-z]+|[A-Z][a-z]+");
+    }
+}
+
+# 从形式上来想，capitals不可能含有aA且仅有开头时可以有Aa形式，依此判断：
+
+class Solution {
+    public boolean detectCapitalUse(String word) {
+        int l = word.length();
+        if(l == 1) return true;
+        for(int i = 1; i < l; i++) {
+            if(Character.isUpperCase(word.charAt(i)) && Character.isLowerCase(word.charAt(i - 1)))
+                return false;
+            else if(Character.isLowerCase(word.charAt(i)) && Character.isUpperCase(word.charAt(i - 1))) {
+                if(i > 1)
+                    return false;
+            }
+        }
+        return true;
+    }
+}
+
+# 一种直接的想法是，capitals要不等于自己的全大写形式；要不等于自己的全小写形式；要不就第一个字母大写，剩下的部分等于剩下的部分的全小写形式：
+
+class Solution {
+    public boolean detectCapitalUse(String word) {
+        return word.equals(word.toUpperCase()) || 
+               word.equals(word.toLowerCase()) ||
+               Character.isUpperCase(word.charAt(0)) && 
+               word.substring(1).equals(word.substring(1).toLowerCase());
+    }
+}
+
+# 另一种直接的想法是，大写数字的个数要不为0；要不为1且第一个是大写；要不为字符串长度：
+
+class Solution {
+     public boolean detectCapitalUse(String word) {
+        int numUpper = 0;
+        for (int i=0;i<word.length();i++)
+            if (Character.isUpperCase(word.charAt(i))) numUpper++;
+        if (numUpper == 1) return Character.isUpperCase(word.charAt(0));
+        return numUpper == 0 || numUpper == word.length();
+    }
+}
