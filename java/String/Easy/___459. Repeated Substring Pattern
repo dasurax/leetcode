@@ -1,0 +1,70 @@
+Given a non-empty string check if it can be constructed by taking a substring of it 
+and appending multiple copies of the substring together. 
+You may assume the given string consists of lowercase English letters only and its length will not exceed 10000.
+
+Example 1:
+Input: "abab"
+
+Output: True
+
+Explanation: It's the substring "ab" twice.
+Example 2:
+Input: "aba"
+
+Output: False
+Example 3:
+Input: "abcabcabcabc"
+
+Output: True
+
+Explanation: It's the substring "abc" four times. (And the substring "abcabc" twice.)
+
+# 从大到小找到可被字符串s的长度整除的数i，然后将字符串分为l/i份，取出第一份拼接成长度l，判断是否与s相等：
+
+class Solution {
+    public boolean repeatedSubstringPattern(String str) {
+        int l = str.length();
+        for(int i=l/2;i>=1;i--) {
+            if(l%i==0) {
+                int m = l/i;
+                String subS = str.substring(0,i);
+                StringBuilder sb = new StringBuilder();
+                for(int j=0;j<m;j++) {
+                    sb.append(subS);
+                }
+                if(sb.toString().equals(str)) return true;
+            }
+        }
+        return false;
+    }
+}
+
+***
+# KMP算法，最后的判断条件pt[l - 1] != 0 && l % (l - pt[l - 1]) == 0的解释可以参看下图：
+# https://discuss.leetcode.com/assets/uploads/files/1481254899617-snipaste20161209_114127.png?v=qgb1lp804jg
+
+class Solution {
+    public boolean repeatedSubstringPattern(String s) {
+        int l = s.length();
+        if(l == 0) return false;
+        int[] pt = new int[l];
+        kmp(pt, s);
+        return pt[l - 1] != 0 && l % (l - pt[l - 1]) == 0;
+    }
+    
+    public void kmp(int[] pt, String s) {
+        int len = 0, l = s.length();
+        pt[0] = 0;
+        for(int i = 1; i < l;) {
+            if(s.charAt(i) == s.charAt(len)) {
+                pt[i++] = ++len;     
+            } else {
+                if(len != 0) {
+                    len = pt[len - 1];
+                } else {
+                    pt[i++] = 0;
+                }
+            }
+        }
+    }
+}
