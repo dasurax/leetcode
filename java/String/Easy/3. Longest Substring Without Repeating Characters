@@ -1,0 +1,50 @@
+Given a string, find the length of the longest substring without repeating characters.
+
+Examples:
+
+Given "abcabcbb", the answer is "abc", which the length is 3.
+
+Given "bbbbb", the answer is "b", with the length of 1.
+
+Given "pwwkew", the answer is "wke", with the length of 3. 
+Note that the answer must be a substring, "pwke" is a subsequence and not a substring.
+
+# 保存一个当前的长度cur，如果新的字符未出现在Hash中，那么简单的增加cur的长度；如果出现过，那么有两种可能，出现在cur所计算的字符串之前以及之中：
+# 出现在之前，则出现的位置不会影响到cur，那么简单的将cur+1（如abbbbbcdea，两个a相隔过“远”）；出现在之中，则取Math.min(cur, i - last)（如bdaca）。
+
+class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        Map<Character, Integer> map = new HashMap();
+        int l = s.length(), cur = 0, max = 0, last;
+        char c;
+        for(int i = 0; i < l; i++) {
+            c = s.charAt(i);
+            last = map.getOrDefault(c, -1);
+            cur++;
+            if(last >= 0) {
+                cur = Math.min(cur, i - last);
+            }
+            max = Math.max(cur, max);
+            map.put(c, i);
+        }
+        return Math.max(cur, max);
+    }
+}
+
+# 除了可以记录不重复字符串的长度cur，也可以记录该字符串的起始位置，与上一解法实际是一回事：
+
+class Solution {
+    public int lengthOfLongestSubstring(String s) {
+        if (s.length()==0) return 0;
+        HashMap<Character, Integer> map = new HashMap<Character, Integer>();
+        int max=0;
+        for (int i=0, j=0; i<s.length(); ++i){
+            if (map.containsKey(s.charAt(i))){
+                j = Math.max(j,map.get(s.charAt(i))+1);
+            }
+            map.put(s.charAt(i),i);
+            max = Math.max(max,i-j+1);
+        }
+        return max;
+    }
+}
