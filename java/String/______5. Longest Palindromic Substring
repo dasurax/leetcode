@@ -1,0 +1,113 @@
+Given a string s, find the longest palindromic substring in s. You may assume that the maximum length of s is 1000.
+
+Example:
+
+Input: "babad"
+
+Output: "bab"
+
+Note: "aba" is also a valid answer.
+Example:
+
+Input: "cbbd"
+
+Output: "bb"
+
+# 方法1，用max记录当前最长的Palindromic，并判断长度为max+1或max+2的以i结尾的子串能否构成Palindromic。
+# 以i结尾的子串不可能构成长度大于max+2的Palindromic（假设为l），因为若能构成的话，那么在i之前能构成长度为(l-2>max)的Palindromic，与max为最大值矛盾。
+
+class Solution {
+    public String longestPalindrome(String s) {
+        int l = s.length(), max = 1, lo = 0;
+        if(l <= 1)
+            return s;
+        for(int i = 1; i < l; i++) {
+            if(isPalindrome(s, i - max - 1, i)) {
+                max += 2;
+                lo = i - max + 1;
+            } else if(isPalindrome(s, i - max, i)) {
+                max += 1;
+                lo = i - max + 1;
+            }
+        }
+        return s.substring(lo, lo + max);
+    }
+    
+    public boolean isPalindrome(String s, int left, int right) {
+        if(left < 0) 
+            return false;
+        while(left < right) {
+        	  if(s.charAt(left++) != s.charAt(right--)) 
+                return false;
+        }
+        return true;
+    }
+}
+
+# 方法2：方法1是判断截止到i的最长子串，而方法2是试图从i向左右扩展，计算最多能扩展到哪里。
+
+class Solution {
+    private int start;
+    private int maxLen;
+    
+    public String longestPalindrome(String s) {
+        if (s==null || s.length()<2)
+            return s;
+        
+        for (int i=0; i<s.length();)
+        {
+            i = extend(s, i);
+        }
+        
+        return s.substring(start, start+maxLen);
+    }
+    
+    private int extend(String s, int i)
+    {
+        int j=i, k=i;
+        while (k<s.length()-1 && s.charAt(k)==s.charAt(k+1))
+            k++;
+        int next=k+1;
+        
+        while (j>=0 && k<=s.length()-1 && s.charAt(j)==s.charAt(k))
+        {
+            j--;
+            k++;
+        }
+        int currLen = (--k)-(++j)+1;
+        if (currLen > maxLen)
+        {
+            start = j;
+            maxLen = currLen;
+        }
+        
+        return next;
+    }
+}
+
+# 方法3：动态规划。
+# dp(i, j) represents whether s(i ... j) can form a palindromic substring, 
+# dp(i, j) is true when s(i) equals to s(j) and s(i+1 ... j-1) is a palindromic substring. 
+# When we found a palindrome, check if it's the longest one. 
+
+public class Solution {
+    public String longestPalindrome(String s) {
+        int n = s.length();
+        String res = null;
+
+        boolean[][] dp = new boolean[n][n];
+
+        for (int i = n - 1; i >= 0; i--) {
+            for (int j = i; j < n; j++) {
+                dp[i][j] = s.charAt(i) == s.charAt(j) && (j - i < 3 || dp[i + 1][j - 1]);
+
+                if (dp[i][j] && (res == null || j - i + 1 > res.length())) {
+                    res = s.substring(i, j + 1);
+                } 
+            }
+        }
+
+        return res;
+    }
+}
+
