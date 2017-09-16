@@ -1,0 +1,66 @@
+Implement atoi to convert a string to an integer.
+
+Hint: Carefully consider all possible input cases. If you want a challenge, 
+please do not see below and ask yourself what are the possible input cases.
+
+Notes: It is intended for this problem to be specified vaguely (ie, no given input specs). 
+You are responsible to gather all the input requirements up front.
+
+# 格式判断之后，在进行加法时有两种方法，一种是从个位加到最高位，也就是用正常的十进制计算方式：
+
+class Solution {
+    public int myAtoi(String str) {
+        char[] c = str.toCharArray();
+        int l = c.length, sgn = 1, start, end, i = 0, num = 0, pow = 1;
+        while(i < l && c[i] == ' ') i++;
+        if(i < l && c[i] == '-') {
+            sgn = -1; i++;
+        }
+        else if(i < l && c[i] == '+') {
+            sgn = 1; i++;
+        }
+        while(i < l && c[i] == '0') i++;  //去除前零
+        start = i;
+        while(i < l && c[i] >= '0' && c[i] <= '9') i++;
+        if(start == i) return 0;
+        else if(i - start > 10) {
+            if(sgn == 1) return Integer.MAX_VALUE;
+            else return Integer.MIN_VALUE;
+        }
+        i--;
+        for(; i >= start; i--) {
+            num += pow * (c[i] - '0');
+            pow *= 10;
+        }
+        if(sgn == 1 && num < 0) return Integer.MAX_VALUE;  //num < 0表示溢出了，需要用MAX或MIN替代。
+        else if(sgn == -1 && num < 0) return Integer.MIN_VALUE;
+        else if(sgn == -1) num *= -1;
+        return num;
+    }
+}
+
+***
+# 另一种是从最高位开始加到个位。如123456,它等于((1*10+2)*10+3)+4.....，即可以看作是12345*10+6，12345又是1234*10+5，依此类推：
+
+class Solution {
+    public int myAtoi(String str) {
+        char[] c = str.toCharArray();
+        int l = c.length, sgn = 1, i = 0, num = 0;
+        while(i < l && c[i] == ' ') i++;
+        if(i < l && c[i] == '-') {
+            sgn = -1; i++;
+        }
+        else if(i < l && c[i] == '+') {
+            sgn = 1; i++;
+        }
+        while(i < l && c[i] == '0') i++;  //去除前零
+        while(i < l && c[i] >= '0' && c[i] <= '9') {
+            //提前判断是否会溢出，但注意不能用num * 10再与MAX_VALUE判断，因为num * 10可能溢出。
+            if(num > Integer.MAX_VALUE / 10 || num == Integer.MAX_VALUE / 10 && 7 < c[i] - '0') 
+                return sgn == 1 ? Integer.MAX_VALUE : Integer.MIN_VALUE;  
+            num = num * 10 + c[i] - '0';
+            i++;
+        }
+        return num * sgn;
+    }
+}
