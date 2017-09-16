@@ -1,0 +1,60 @@
+Given a digit string, return all possible letter combinations that the number could represent.
+
+A mapping of digit to letters (just like on the telephone buttons) is given below.
+
+Input:Digit string "23"
+Output: ["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"].
+Note:
+Although the above answer is in lexicographical order, your answer could be in any order you want.
+
+# 递归（DFS）：
+
+class Solution {
+    String[] strs = {"abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+    public List<String> letterCombinations(String digits) {
+        List<String> list = new ArrayList();
+        int l = digits.length();
+        if(l == 0)
+            return list;
+        for(int i = 0; i < l; i++)
+            if(digits.charAt(i) == '1')
+                return list;
+        recur(digits, list, new StringBuilder(), 0, l);
+        return list;
+    }
+    
+    public void recur(String digits, List<String> list, StringBuilder sb, int d, int l) {
+        if(d == l) {
+            list.add(sb.toString());
+            return;
+        }
+        char digit = digits.charAt(d);
+        char[] str = strs[digit - '0' - 2].toCharArray();
+        for(char c: str) {
+            StringBuilder nsb = new StringBuilder(sb);
+            nsb.append(c);
+            recur(digits, list, nsb, d + 1, l);
+        }
+    }
+}
+
+# 迭代（BFS）：
+
+class Solution {
+    public List<String> letterCombinations(String digits) {
+        LinkedList<String> ans = new LinkedList<String>();
+        if (digits.length()==0)
+            return ans;
+        String[] mapping = new String[] {"0", "1", "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz"};
+        ans.add("");
+        for(int i =0; i<digits.length();i++){
+            int x = Character.getNumericValue(digits.charAt(i));
+            while(ans.peek().length()==i){
+                String t = ans.remove();
+                for(char s : mapping[x].toCharArray())
+                    ans.add(t+s);
+            }
+        }
+        return ans;
+    }
+}
