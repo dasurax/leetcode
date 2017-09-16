@@ -1,0 +1,67 @@
+The string "PAYPALISHIRING" is written in a zigzag pattern on a given number of rows like this: 
+(you may want to display this pattern in a fixed font for better legibility)
+
+P   A   H   N
+A P L S I I G
+Y   I   R
+And then read line by line: "PAHNAPLSIIGYIR"
+Write the code that will take a string and make this conversion given a number of rows:
+
+string convert(string text, int nRows);
+convert("PAYPALISHIRING", 3) should return "PAHNAPLSIIGYIR".
+
+# 可以将Z型视为不同的段（一次向下和向右上视作一段），每段中除了第一行和最后一行只有一个元素，
+# 其它行都有两个元素，且其下标有关于i的对称性[j * n + i，(j + 1) * n - i]，
+# 因此可以按行生成字符串，每行中按段的顺序生成字符串：
+
+class Solution {
+    public String convert(String s, int numRows) {
+        int l = s.length(), n, cols;
+        if(l <= numRows || numRows == 1) {
+            return s;
+        }
+        n = numRows * 2 - 2;
+        cols = l / n;
+        if(l % n != 0)
+            cols++;
+        StringBuilder sb = new StringBuilder();
+        for(int j = 0; j < cols; j++) {
+            sb.append(s.charAt(j * n));
+        }
+        for(int i = 1; i < numRows; i++) {
+            for(int j = 0; j < cols; j++) 
+            {
+                if(j * n + i >= l)
+                    break;
+                sb.append(s.charAt(j * n + i));
+                if((j + 1) * n - i >= l)
+                    break;
+                else if(j * n + i != (j + 1) * n - i)  //最后一行会出现j * n + i == (j + 1) * n - i的情况，避免重复添加
+                    sb.append(s.charAt((j + 1) * n - i));
+            }
+        }
+        return sb.toString();
+    }
+}
+
+# 或者直接遍历每个字符，模拟向下（vertically down）和向右上（obliquely up）的过程，记录每个字符在哪一行并拼接到相应的行中，最后拼接所有行：
+
+class Solution {
+    public String convert(String s, int nRows) {
+        char[] c = s.toCharArray();
+        int len = c.length;
+        StringBuffer[] sb = new StringBuffer[nRows];
+        for (int i = 0; i < sb.length; i++) sb[i] = new StringBuffer();
+
+        int i = 0;
+        while (i < len) {
+            for (int idx = 0; idx < nRows && i < len; idx++) // vertically down
+                sb[idx].append(c[i++]);
+            for (int idx = nRows-2; idx >= 1 && i < len; idx--) // obliquely up
+                sb[idx].append(c[i++]);
+        }
+        for (int idx = 1; idx < sb.length; idx++)
+            sb[0].append(sb[idx]);
+        return sb[0].toString();
+    }
+}
