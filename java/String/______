@@ -1,0 +1,76 @@
+
+***
+# 该题的关键是如何找到一组字符串所对应的相同的key（generate a unique key for each group of Strings），下面有几种不同的方法：
+# 方法一：一组内的字符组成是一样的，也就是说将每个字符串转换为字符数组并将字符数组排序最终得到的结果是一样的，因此可以将排序后的字符数组作为Map的key。
+# 复杂度：O(NKlog(K)), where N is the length of strs, and K is the maximum length of a string in strs. 
+
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        Map<String, List<String>> map = new HashMap();
+        for(String str: strs) {
+            char[] ca = str.toCharArray();
+            Arrays.sort(ca);
+            String ss = String.valueOf(ca);
+            List<String> list = map.getOrDefault(ss, new ArrayList());
+            list.add(str);
+            map.put(ss, list);
+        }
+        return new ArrayList<List<String>>(map.values());
+    }
+}
+
+***
+# 方法二：一组内的字符组成是一样的，也就是说每个字符串中不同字母的个数一样，因此可以将这些数量信息作为Map的key。
+# 如#1#2#3#0#0#0...#0表示1a2b3c，其余字母数均为0。要为每个字符串构造一个这样的表示。
+# 复杂度：O(N∗K), where N is the length of strs, and K is the maximum length of a string in strs. 需要额外26的空间。
+
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        if (strs.length == 0) return new ArrayList();
+        Map<String, List> ans = new HashMap<String, List>();
+        int[] count = new int[26];
+        for (String s : strs) {
+            Arrays.fill(count, 0);
+            for (char c : s.toCharArray()) count[c - 'a']++;
+
+            StringBuilder sb = new StringBuilder("");
+            for (int i = 0; i < 26; i++) {
+                sb.append('#');
+                sb.append(count[i]);
+            }
+            String key = sb.toString();
+            if (!ans.containsKey(key)) ans.put(key, new ArrayList());
+            ans.get(key).add(s);
+        }
+        return new ArrayList(ans.values());
+    }
+}
+
+******
+# 方法三：用素数相乘，在不发生溢出的情况下，不同字母组成对应的乘积肯定不同，但有可能因为乘积太大发生溢出：
+
+class Solution {
+    public List<List<String>> groupAnagrams(String[] strs) {
+        int[] prime = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101};
+    
+        List<List<String>> res = new ArrayList<>();
+        HashMap<Integer, Integer> map = new HashMap<>();
+        for (String s : strs) {
+            int key = 1;
+            for (char c : s.toCharArray()) {
+                key *= prime[c - 'a'];
+            }
+            List<String> t;
+            if (map.containsKey(key)) {
+                t = res.get(map.get(key));
+            } else {
+                t = new ArrayList<>();
+                res.add(t);
+                map.put(key, res.size() - 1);
+            }
+        
+            t.add(s);
+        }
+        return res;
+    }
+}
