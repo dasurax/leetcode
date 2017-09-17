@@ -1,0 +1,32 @@
+Given two non-negative integers num1 and num2 represented as strings, return the product of num1 and num2.
+
+Note:
+
+The length of both num1 and num2 is < 110.
+Both num1 and num2 contains only digits 0-9.
+Both num1 and num2 does not contain any leading zero.
+You must not use any built-in BigInteger library or convert the inputs to integer directly.
+
+# 使用人为进行乘法计算的思路即可，上一行的计算结果保存在n中，计算下一行时用上一行的结果计算进位：
+
+class Solution {
+    public String multiply(String num1, String num2) {
+        int l1 = num1.length(), l2 = num2.length(), tmp, k = 0;
+        int[] n = new int[l1 + l2]; 
+        char[] cnum1 = num1.toCharArray(), cnum2 = num2.toCharArray();
+        StringBuilder sb = new StringBuilder();
+        for(int i = l1 - 1; i >= 0; i--) {
+            for(int j = l2 - 1; j >= 0; j--) {
+                tmp = (cnum1[i] - '0') * (cnum2[j] - '0') + n[i + j + 1];
+                n[i + j] += tmp / 10;
+                n[i + j + 1] = tmp % 10;
+            }
+        }
+        while(k < l1 + l2 && n[k] == 0)
+            k++;
+        for(; k < l1 + l2; k++) {
+            sb.append(n[k]);
+        }
+        return sb.length() == 0 ? "0" : sb.toString();
+    }
+}
