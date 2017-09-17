@@ -1,0 +1,90 @@
+Given a string containing only digits, restore it by returning all possible valid IP address combinations.
+
+For example:
+Given "25525511135",
+
+return ["255.255.11.135", "255.255.111.35"]. (Order does not matter)
+
+# 四层循环依次对每一段可能的长度进行遍历（为了剪枝），并判断每一段是否合法（实际上只有三层，因为当前三个部分长度确定了，第四个部分长度也就确定了）。
+# 合法意味着小于256且不出现有前导零的情况。
+
+class Solution {
+    public List<String> restoreIpAddresses(String s) {
+        int len = s.length(), minlen = Math.max(1, len - 9), maxlen = Math.min(3, len - 3), start = 0;
+        String a, b, c, d;
+        List<String> list = new ArrayList();
+        if(len > 12 || len < 4) return list;
+        for(int i = minlen; i <= maxlen; i++) {
+            len -= i;
+            for(int j = Math.max(1, len - 6); j <= Math.min(3, len - 2); j++) {
+                len -= j;
+                for(int k = Math.max(1, len - 3); k <= Math.min(3, len - 1); k++) {
+                    a = s.substring(0, i);
+                    b = s.substring(i, i + j);
+                    c = s.substring(i + j, i + j + k);
+                    d = s.substring(i + j + k);
+                    if(isValid(a) && isValid(b) && isValid(c) && isValid(d))
+                        list.add(a + "." + b + "." + c + "." + d);
+                }
+                len += j;
+            }
+            len = s.length();
+            start = 0;
+        }
+        return list;
+    }
+    
+    public boolean isValid(String s){
+        if((s.charAt(0)=='0' && s.length()>1) || Integer.parseInt(s)>255)
+            return false;
+        return true;
+    }
+}
+
+# 也可以对每段可能的终止下标进行遍历。下面代码只对maxlen作了剪枝，可以加上对minlen的判断，结合下面url中的代码：
+# https://leetcode.com/problems/restore-ip-addresses/discuss/
+
+public class Solution {
+    public List<String> restoreIpAddresses(String s) {
+        List<String> res = new ArrayList<String>();
+        int len = s.length();
+        for(int i = 0; i<3 && i<len-3; i++){
+            for(int j = i+1; j<i+4 && j<len-2; j++){
+                for(int k = j+1; k<j+4 && k<len-1; k++){
+                    String s1 = s.substring(0,i+1), s2 = s.substring(i+1,j+1), s3 = s.substring(j+1,k+1), s4 = s.substring(k+1);
+                    if(isValid(s1) && isValid(s2) && isValid(s3) && isValid(s4)){
+                        res.add(s1+"."+s2+"."+s3+"."+s4);
+                    }
+                }
+            }
+        }
+        return res;
+    }
+    public boolean isValid(String s){
+        if(s.length()>3 || s.length()==0 || (s.charAt(0)=='0' && s.length()>1) || Integer.parseInt(s)>255)
+            return false;
+        return true;
+    }
+}
+
+# DFS：
+
+public class Solution {
+    public List<String> restoreIpAddresses(String s) {
+        List<String> solutions = new ArrayList<String>();
+        restoreIp(s, solutions, 0, "", 0);
+        return solutions;
+    }
+
+    private void restoreIp(String ip, List<String> solutions, int idx, String restored, int count) {
+        if (count > 4) return;
+        if (count == 4 && idx == ip.length()) solutions.add(restored);
+
+        for (int i=1; i<4; i++) {
+            if (idx+i > ip.length()) break;
+            String s = ip.substring(idx,idx+i);
+            if ((s.startsWith("0") && s.length()>1) || (i==3 && Integer.parseInt(s) >= 256)) continue;
+            restoreIp(ip, solutions, idx+i, restored+s+(count==3?"" : "."), count+1);
+        }
+    }
+}
