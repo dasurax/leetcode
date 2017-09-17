@@ -1,0 +1,35 @@
+Given an absolute path for a file (Unix-style), simplify it.
+
+For example,
+path = "/home/", => "/home"
+path = "/a/./b/../../c/", => "/c"
+click to show corner cases.
+
+Corner Cases:
+Did you consider the case where path = "/../"?
+In this case, you should return "/".
+Another corner case is the path might contain multiple slashes '/' together, such as "/home//foo/".
+In this case, you should ignore redundant slashes and return "/home/foo".
+
+# 遇到路径名时入栈（只要不是".." "," ""都算路径名），遇到".."时从栈中弹出栈顶路径：
+
+class Solution {
+    public String simplifyPath(String path) {
+        Deque<String> stack = new LinkedList();
+        Set<String> skip = new HashSet<>(Arrays.asList("..",".",""));
+        for(String str: path.split("/")) {
+            if(str.equals(".") || str.equals("")) {
+               continue;
+            } else if(str.equals("..") && !stack.isEmpty()) {
+                stack.pop();
+            } else if(!str.equals("..")){
+                stack.push(str);
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        while(!stack.isEmpty()) {
+            sb.append('/').append(stack.removeLast());
+        }
+        return sb.length() == 0 ? "/" : sb.toString();
+    }
+}
