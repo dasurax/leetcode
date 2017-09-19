@@ -1,0 +1,122 @@
+Implement a basic calculator to evaluate a simple expression string.
+
+The expression string contains only non-negative integers, +, -, *, / operators and empty spaces . The integer division should truncate toward zero.
+
+You may assume that the given expression is always valid.
+
+Some examples:
+"3+2*2" = 7
+" 3/2 " = 1
+" 3+5 / 2 " = 5
+
+# 两个堆栈，分别保存数字和符号，当遇到乘除时，弹出栈顶元素并与乘除后面的数字进行运算：
+
+class Solution {
+    public int calculate(String s) {
+        char[] ca = s.toCharArray();
+        int l = ca.length, num = 0, re = 0;
+        Deque<Integer> numstack = new LinkedList();
+        Deque<Character> signstack = new LinkedList();
+        for(int i = 0; i < l; i++) {
+            if(ca[i] == ' ') continue;
+            else if(ca[i] == '-' || ca[i] == '+') signstack.push(ca[i]);
+            else if(ca[i] == '*' || ca[i] == '/') {
+                char t = ca[i];
+                i++;
+                while(i < l && ca[i] == ' ') i++;
+                while(i < l && Character.isDigit(ca[i])) {
+                    num = num * 10 + ca[i] - '0';
+                    i++;
+                }
+                if(t == '*') numstack.push(numstack.pop() * num);
+                else numstack.push(numstack.pop() / num);
+                i--; num = 0;
+            } else {
+                while(i < l && Character.isDigit(ca[i])) {
+                    num = num * 10 + ca[i] - '0';
+                    i++;
+                }
+                numstack.push(num);
+                i--; num = 0;
+            }
+        }
+        re = numstack.removeLast();
+        while(numstack.peekLast() != null) {
+            char sign = signstack.removeLast();
+            int cur = numstack.removeLast();
+            if(sign == '+') re += cur;
+            else re -= cur;
+        }
+        return re;
+    }
+}
+
+***
+# 上面符号栈实际上只保存了加减号，而加减号实际上可以直接通过将跟在加减号后面的数字进行取正获取负来直接影响结果，因此无需保存符号栈。
+# sign保存的是当前num之前的那个符号，初始化为+。
+
+class Solution {
+    public int calculate(String s) {
+        char[] ca = s.toCharArray();
+        int l = ca.length, num = 0, re = 0;
+        char sign = '+';
+        Deque<Integer> numstack = new LinkedList();
+        for(int i = 0; i < l; i++) {
+            if(Character.isDigit(ca[i])){
+                num = num * 10 + ca[i] - '0';
+            }
+            if(ca[i] == '-' || ca[i] == '+' || ca[i] == '*' || ca[i] == '/' || i == l - 1) {
+                if(sign == '+') numstack.push(num);
+                else if(sign == '-') numstack.push(-num);  //遇到减号，则直接将减号后面的数字取负放到栈中。
+                else if(sign == '*') numstack.push(numstack.pop() * num);
+                else numstack.push(numstack.pop() / num);
+                sign = ca[i];
+                num = 0;
+            }
+        }
+        for(int i: numstack){
+            re += i;
+        }
+        return re;
+    }
+}
+
+***
+# 迭代，preVal保存的是sign之前的值。sign为加减号时，sign之前的preVal可以直接加到结果中去，不会收到后面乘除号的影响：
+
+class Solution {
+    public int calculate(String s) {
+        if (s == null) return 0;
+        s = s.trim().replaceAll(" +", "");
+        int length = s.length();
+
+        int res = 0;
+        long preVal = 0; // initial preVal is 0
+        char sign = '+'; // initial sign is +
+        int i = 0;
+        while (i < length) {
+            long curVal = 0;
+            while (i < length && (int)s.charAt(i) <= 57 && (int)s.charAt(i) >= 48) { // int
+                curVal = curVal*10 + (s.charAt(i) - '0');
+                i++;
+            }
+            if (sign == '+') {
+                res += preVal;  // update res
+                preVal = curVal;
+            } else if (sign == '-') {
+                res += preVal;  // update res
+                preVal = -curVal;
+            } else if (sign == '*') {
+                preVal = preVal * curVal; // not update res, combine preVal & curVal and keep loop
+            } else if (sign == '/') {
+                preVal = preVal / curVal; // not update res, combine preVal & curVal and keep loop
+            }
+            if (i < length) { // getting new sign
+                sign = s.charAt(i);
+                i++;
+            }
+        }
+        res += preVal;
+        return res;
+    }
+}
