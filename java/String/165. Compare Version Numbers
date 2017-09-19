@@ -1,0 +1,61 @@
+Compare two version numbers version1 and version2.
+If version1 > version2 return 1, if version1 < version2 return -1, otherwise return 0.
+
+You may assume that the version strings are non-empty and contain only digits and the . character.
+The . character does not represent a decimal point and is used to separate number sequences.
+For instance, 2.5 is not "two and a half" or "half way to version three", it is the fifth second-level revision of the second first-level revision.
+
+Here is an example of version numbers ordering:
+
+0.1 < 1.1 < 1.2 < 13.37
+
+# 注意0.0.0和0.00.0.0.0是同一版本。
+
+class Solution {
+    public int compareVersion(String version1, String version2) {
+        String[] w1 = version1.split("\\.");
+        String[] w2 = version2.split("\\.");
+        int l1 = w1.length, l2 = w2.length;
+        for(int i = 0; i < l1; i++) {
+            if(i == l2) {  //走到这一步说明l1 >= l2且前面部分的版本号都相同。
+                while(i < l1 && Integer.parseInt(w1[i]) == 0)  //略过v1后面多余的0。
+                    i++;
+                if(i != l1)  //说明v1后面部分不全为0.
+                    return 1;
+                else
+                    return 0;
+            }
+            int n1 = Integer.parseInt(w1[i]), n2 = Integer.parseInt(w2[i]);
+            if(n1 > n2)
+                return 1;
+            else if(n1 < n2)
+                return -1;
+        }
+        int i = l1; 
+        while(i < l2 && Integer.parseInt(w2[i]) == 0)  // 走到这一步说明l1 < l2且前面部分的版本号都相同，略过v2后面多余的0。
+            i++;
+        return l2 == i ? 0 : -1;
+    }
+}
+
+# 因为若较短的版本号已经匹配了较长的前半部分，且较长的后半部分全为0时，这时二者也相等，因此可以将较用0短版本号"补全"为与长的版本号长度相同，再比较。
+# 得到简洁版：
+
+class Solution {
+    public int compareVersion(String version1, String version2) {
+        String[] levels1 = version1.split("\\.");
+        String[] levels2 = version2.split("\\.");
+
+        int length = Math.max(levels1.length, levels2.length);
+        for (int i=0; i<length; i++) {
+            Integer v1 = i < levels1.length ? Integer.parseInt(levels1[i]) : 0;
+            Integer v2 = i < levels2.length ? Integer.parseInt(levels2[i]) : 0;
+            int compare = v1.compareTo(v2);
+            if (compare != 0) {
+                return compare;
+            }
+        }
+
+        return 0;
+    }
+}
