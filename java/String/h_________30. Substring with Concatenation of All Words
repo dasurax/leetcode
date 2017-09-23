@@ -37,4 +37,57 @@ class Solution {
 }
 
 *********
-# 
+# 若words种每个word长度为lw，可以对lw进行遍历。如lw=3，在外层循环时对i=0 i=1 i=2进行遍历，对于i=3，可以放入i=0（即不考虑s的第一个单词）。
+# 对于内层循环，当找到某一个解时，可以在这个基础上继续。如s="foobarfoo"，words=["foo","bar"]，当处理到s中的第二个foo时，发现它在words中，
+# 但是已经用在前面的解中，即tmp.containsKey(str)存在但值为0。这时可以从前往后找到第一个foo并将它和它之前的值从结果中删去。在上面例子中，
+# 第一个foo被删去，bar还保留，与第二个foo构成了新的解。
+# 外层循环执行lw次，内层循环最多执行2*ls/lw（*2是因为要从前向后找）。因此复杂度为O(N)。
+
+class Solution {
+    public List<Integer> findSubstring(String s, String[] words) {
+        int la = words.length, lw = words[0].length(), lm = la * lw, ls = s.length(), j, idx, left;
+        List<Integer> list = new ArrayList();
+        if(lm > ls) return list;
+        Map<String, Integer> map = new HashMap(), tmp;
+        for(String word: words) {
+            map.put(word, map.getOrDefault(word, 0) + 1);
+        }
+        for(int i = 0; i < lw; i++) {
+            tmp = new HashMap(map);
+            for(left = i, idx = i, j = 0; idx + (la - j) * lw <= ls; ) {
+                if(idx + lw > ls)
+                    break;
+                String str = s.substring(idx, idx + lw);
+                if(tmp.containsKey(str)) {
+                    //System.out.println(str + " | " + idx + " " + left + " " + tmp.get(str) + " " + j);
+                    if(tmp.get(str) > 0) {
+                        tmp.put(str, tmp.get(str) - 1);
+                        //System.out.println(str + " " + idx);
+                        idx += lw;
+                        j++;
+                        if(j == la) {
+                            list.add(left);
+                            //System.out.println(list);
+                        }
+                    } else {  //找到第一个str并将它和它之前的值从结果中删去。
+                        while(left + lw <= ls && !str.equals(s.substring(left, left + lw))) {
+                            String str2 = s.substring(left, left + lw);
+                            left += lw;
+                            j--;
+                            tmp.put(str2, tmp.get(str2) + 1);
+                        }
+                        left += lw;
+                        j--;
+                        tmp.put(str, tmp.get(str) + 1);
+                    }
+                } else {
+                    idx += lw;
+                    left = idx;
+                    j = 0;
+                    tmp = new HashMap(map);
+                }
+            }
+        }
+        return list;
+    }
+}
