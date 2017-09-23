@@ -1,0 +1,40 @@
+You are given a string, s, and a list of words, words, that are all of the same length. Find all starting indices of substring(s) in s that is a concatenation of each word in words exactly once and without any intervening characters.
+
+For example, given:
+s: "barfoothefoobarman"
+words: ["foo", "bar"]
+
+You should return the indices: [0,9].
+(order does not matter).
+
+# 朴素解法，遍历字符串s的每个位置，看从该位置开始是否有符合的子串：
+
+class Solution {
+    public List<Integer> findSubstring(String s, String[] words) {
+        int la = words.length, lw = words[0].length(), lm = la * lw, ls = s.length(), j;
+        List<Integer> list = new ArrayList();
+        if(lm > ls) return list;
+        Map<String, Integer> map = new HashMap(), tmp;
+        for(String word: words) {
+            map.put(word, map.getOrDefault(word, 0) + 1);
+        }
+        for(int i = 0; i < ls; i++) {
+            if(i + lm <= ls) {
+                tmp = new HashMap(map);
+                for(j = 0; j < la; j++) {              
+                    String str = s.substring(i + j * lw, i + j * lw + lw);
+                    if(tmp.getOrDefault(str, 0) == 0)
+                        break;
+                    else
+                        tmp.put(str, tmp.get(str) - 1);
+                }
+                if(j == la)
+                    list.add(i);
+            }
+        }
+        return list;
+    }
+}
+
+*********
+# 
