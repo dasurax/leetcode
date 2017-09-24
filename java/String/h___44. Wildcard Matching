@@ -1,0 +1,88 @@
+Implement wildcard pattern matching with support for '?' and '*'.
+
+'?' Matches any single character.
+'*' Matches any sequence of characters (including the empty sequence).
+
+The matching should cover the entire input string (not partial).
+
+The function prototype should be:
+bool isMatch(const char *s, const char *p)
+
+Some examples:
+isMatch("aa","a") → false
+isMatch("aa","aa") → true
+isMatch("aaa","aa") → false
+isMatch("aa", "*") → true
+isMatch("aa", "a*") → true
+isMatch("ab", "?*") → true
+isMatch("aab", "c*a*b") → false
+
+# DP:与10. Regular Expression Matching的思路相同，但本题中*号不与前面的字符绑定，因此简单一些:
+
+class Solution {
+    public boolean isMatch(String s, String p) {
+        int ls = s.length(), lp = p.length();
+        boolean dp[] = new boolean[lp + 1], leftUp, up;
+        dp[0] = true;
+        for(int j = 0; j < lp; j++) {
+            dp[j + 1] = p.charAt(j) == '*' && dp[j];
+        }
+        for(int i = 0; i < ls; i++) {
+            leftUp = dp[0];
+            dp[0] = false;
+            for(int j = 0; j < lp; j++) {
+                up = dp[j + 1];
+                if(p.charAt(j) == s.charAt(i) || p.charAt(j) == '?')
+                    dp[j + 1] = leftUp;
+                else if(p.charAt(j) == '*') {
+                    dp[j + 1] = dp[j + 1] || dp[j] || leftUp;  //分别对应于*匹配（多个||0个||1个）的情况
+                } else {
+                    dp[j + 1] = false;
+                }
+                leftUp = up;
+            }
+        }
+        return dp[lp];
+    }
+}
+
+***
+# 回溯的思想。假设遇到*之前的部分s[0:i-1]和p[0:j-1]已经匹配了。若*后面的部分不再包含*，则比较s[i:]与p[j+1:]，增加i和j，判断是否匹配。
+# 如...*ab和...abab，这时s的第一个ab与p匹配，但是s还有字符没有匹配，因此失败，将i重置到b，继续进行。该过程类似于找到p[j+1:]在s[i:]中的最后的位置。
+# 在这个过程中若遇到了*，则可认为这个*前面的部分也匹配了，因此把这个*作为起点，重复上面的过程。
+# 复杂度为O(s*p)，最坏情况：s=bbbbbbbbbbbb,p=*bbbb，这时bbbb会与s从头比较到尾。
+# 因为遇到*号时比较时从*后面的字符开始，因此像"ab*cdec"，"ab*c"这样s中包含*号的情况无法处理。
+
+class Solution {
+    boolean isMatch(String str, String pattern) {
+        int s = 0, p = 0, match = 0, starIdx = -1;            
+        while (s < str.length()){
+            // advancing both pointers
+            if (p < pattern.length()  && (pattern.charAt(p) == '?' || str.charAt(s) == pattern.charAt(p))){
+                s++;
+                p++;
+            }
+            // * found, only advancing pattern pointer
+            else if (p < pattern.length() && pattern.charAt(p) == '*'){
+                starIdx = p;
+                match = s;
+                p++;
+            }
+           // last pattern pointer was *, advancing string pointer
+            else if (starIdx != -1){
+                p = starIdx + 1;
+                match++;   // 从s的下一个地方开始匹配p。
+                s = match;
+            }
+           //current pattern pointer is not star, last patter pointer was not *
+          //characters do not match
+            else return false;
+        }
+        
+        //check for remaining characters in pattern
+        while (p < pattern.length() && pattern.charAt(p) == '*')
+            p++;
+        
+        return p == pattern.length();
+    }
+}
