@@ -1,0 +1,116 @@
+Given a string containing just the characters '(' and ')', find the length of the longest valid (well-formed) parentheses substring.
+
+For "(()", the longest valid parentheses substring is "()", which has length = 2.
+
+Another example is ")()())", where the longest valid parentheses substring is "()()", which has length = 4.
+
+# 第一轮循环将字符串入栈，若遇到不匹配的')',将它的下标取负后入栈。若遇到匹配的')'即栈顶下标大于0，
+# 则将ends[stack[top]]（stack[top]是栈顶的'('的喜爱表）标记为')'的下标，因此ends[i]保存的是与下标i位置上的'('相匹配的')'的位置。
+# 第二轮循环找到最大的连续区间，如ends[0]=1([0,1]),ends[2]=11([2,11]),则会合并为[0,11]。
+# 第二轮要遍历长度l，效率较低，可能会TLE。
+
+class Solution {
+    public int longestValidParentheses(String s) {
+        int l = s.length();
+        if(l < 2) return 0;
+        int ends[] = new int[l], idx, cur = 0, max = 0, start = -2, end = -2;
+        Deque<Integer> pos = new LinkedList();
+        if(s.charAt(0) == '(')
+            pos.push(0);
+        for(int i = 1; i < l; i++) {
+            if(s.charAt(i) == '(')
+                pos.push(i);
+            else if(s.charAt(i) == ')' && !pos.isEmpty() && pos.peek() >= 0) {
+                ends[pos.pop()] = i;
+            } else {
+                pos.push(-i);
+            }
+        }
+        for(int i = 0; i < l; i++) {
+            if(ends[i] != 0) {
+                if(i == end + 1) {
+                    end = ends[i];
+                } else if (i > end) {
+                    start = i;
+                    end = ends[i];
+                }
+                max = Math.max(max, end - start + 1);
+            }
+        }
+        return max;
+    }
+}
+
+# 方法二：第一轮依然先入栈，但不用取负，最终栈内剩下的都是不匹配的括号所在的位置，因此栈内相邻两个数的差值既是它们之间匹配子串的长度。
+# 第二轮遍历找到这个长度的最大值。注意结束while循环后，因为这时候end不一定为0，即end一直向前到0的子串也是匹配的，因此还要算上这个长度。
+
+class Solution {
+    public int longestValidParentheses(String s) {
+        int l = s.length();
+        if(l < 2) return 0;
+        int ends[] = new int[l], max = 0, start = 0, end = l;
+        Deque<Integer> stack = new LinkedList();
+        for(int i = 0; i < l; i++) {
+            if(s.charAt(i) == '(')
+                stack.push(i);
+            else if(s.charAt(i) == ')' && !stack.isEmpty() && s.charAt(stack.peek()) == '(') {
+                stack.pop();
+            } else {
+                stack.push(i);
+            }
+        }
+        // for(int i = 0; i < l; i++)
+        //     System.out.print(ends[i] + " ");
+        if(stack.isEmpty())
+            return l;
+        while(!stack.isEmpty()) {
+            start = stack.pop();
+            max = Math.max(max, end - start - 1);
+            end = start;
+        }
+        return Math.max(max, end);
+    }
+}
+
+******
+# 方法三: 只用一轮循环。当出现匹配的括号时，弹出'('，并判断当前i与栈顶下标的距离。显然i与栈顶下标之间的部分都是匹配的。实际上与方法二一致。
+
+class Solution {
+    public int longestValidParentheses(String s) {
+        int l = s.length();
+        if(l < 2) return 0;
+        int max = 0;
+        Deque<Integer> stack = new LinkedList();
+        stack.push(-1);  // 处理s的第一个字符为'('且存在与它匹配的')'时的情况。
+        for(int i = 0; i < l; i++) {
+            if(s.charAt(i) == ')' && stack.size() > 1 && s.charAt(stack.peek()) == '(') {
+                stack.pop();
+                max = Math.max(max, i - stack.peek());
+            } else {
+                stack.push(i);
+            }
+        }
+        return max;
+    }
+}
+
+******
+# 方法四：DP。ls[i]表示以s[i]为结尾的最长匹配串的长度。当s[i]=='(',显然ls[i]=0。
+# 当s[i]==')',要找到上一个失配的'('，该'('的位置可能为i - ls[i - 1] - 1，即要跳过以s[i-1]为结尾且为最长匹配串的那部分。
+# 若s[i - ls[i - 1] - 1]=='('，表示可以与s[i]配对，则新的长度为ls[i - 1]+2（即加上新匹配的那对括号），再加上ls[i - ls[i - 1] - 2]。
+
+class Solution {
+    public int longestValidParentheses(String s) {
+        int l = s.length();
+        if(l < 2) return 0;
+        int max = 0;
+        int ls[] = new int[l];
+        for(int i = 1; i < l; i++) {
+            if(s.charAt(i) == ')' && i - ls[i - 1] - 1 >= 0 && s.charAt(i - ls[i - 1] - 1) == '(') {
+                ls[i] = ls[i - 1] + 2 + (i - ls[i - 1] - 2 >= 0 ? ls[i - ls[i - 1] - 2] : 0);
+                max = Math.max(max, ls[i]);
+            }
+        }
+        return max;
+    }
+}
