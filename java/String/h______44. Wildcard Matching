@@ -46,32 +46,31 @@ class Solution {
     }
 }
 
-***
+******
 # 回溯的思想。假设遇到*之前的部分s[0:i-1]和p[0:j-1]已经匹配了。若*后面的部分不再包含*，则比较s[i:]与p[j+1:]，增加i和j，判断是否匹配。
 # 如...*ab和...abab，这时s的第一个ab与p匹配，但是s还有字符没有匹配，因此失败，将i重置到b，继续进行。该过程类似于找到p[j+1:]在s[i:]中的最后的位置。
 # 在这个过程中若遇到了*，则可认为这个*前面的部分也匹配了，因此把这个*作为起点，重复上面的过程。
 # 复杂度为O(s*p)，最坏情况：s=bbbbbbbbbbbb,p=*bbbb，这时bbbb会与s从头比较到尾。
-# 因为遇到*号时比较时从*后面的字符开始，因此像"ab*cdec"，"ab*c"这样s中包含*号的情况无法处理。
 
 class Solution {
     boolean isMatch(String str, String pattern) {
         int s = 0, p = 0, match = 0, starIdx = -1;            
-        while (s < str.length()){
-            // advancing both pointers
-            if (p < pattern.length()  && (pattern.charAt(p) == '?' || str.charAt(s) == pattern.charAt(p))){
-                s++;
-                p++;
-            }
+        while (s < str.length()) {
             // * found, only advancing pattern pointer
-            else if (p < pattern.length() && pattern.charAt(p) == '*'){
+            if (p < pattern.length() && pattern.charAt(p) == '*'){
                 starIdx = p;
                 match = s;
+                p++;
+            }
+            // advancing both pointers
+            else if (p < pattern.length()  && (pattern.charAt(p) == '?' || str.charAt(s) == pattern.charAt(p))){
+                s++;
                 p++;
             }
            // last pattern pointer was *, advancing string pointer
             else if (starIdx != -1){
                 p = starIdx + 1;
-                match++;   // 从s的下一个地方开始匹配p。
+                match++;
                 s = match;
             }
            //current pattern pointer is not star, last patter pointer was not *
