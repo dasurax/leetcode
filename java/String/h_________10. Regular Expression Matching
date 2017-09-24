@@ -81,7 +81,7 @@ class Solution {
                     if(p.charAt(j - 1) != '.' && p.charAt(j - 1) != s.charAt(i))
                         dp[j + 1] = dp[j - 1];
                     else {
-                        dp[j + 1] = (dp[j - 1] || dp[j] || dp[j + 1]);   
+                        dp[j + 1] = (dp[j - 1] || dp[j] || dp[j + 1]);  //如acc*和ac，这时dp[j]和dp[j + 1]都为false，但dp[j - 1]为true。
                     }
                 } else {
                     dp[j + 1] = false;
