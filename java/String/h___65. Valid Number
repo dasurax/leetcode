@@ -36,7 +36,7 @@ class Solution {
             } else 
                 return false;
         }
-        return f && n;
+        return n;
     }
 }
 
