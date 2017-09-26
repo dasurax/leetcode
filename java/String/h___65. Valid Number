@@ -1,0 +1,44 @@
+Validate if a given string is numeric.
+
+Some examples:
+"0" => true
+" 0.1 " => true
+"abc" => false
+"1 a" => false
+"2e10" => true
+Note: It is intended for the problem statement to be ambiguous. You should gather all requirements up front before implementing one.
+
+# e:是否出现过e，f:是否出现过除空格以外的字符，n:是否出现过数字，dot:是否出现过小数点，w:是否在空格之前出现过除空格以外的字符。
+
+class Solution {
+    public boolean isNumber(String s) {
+        char ca[] = s.toCharArray();
+        boolean e = false, f = false, w = false, n = false, dot = false;
+        for(char c: ca) {
+            if(!w && ((c == '-' || c == '+') && !f || c >= '0' && c <= '9' || !e && (c == 'e' || !dot && c == '.')) 
+               || c == ' ') {
+                if(c == ' ') {
+                    if(f)
+                       w = true;
+                    continue;
+                } else if(c == 'e') {
+                    if(!n) return false;
+                    n = false;  //重置n和f,相当于从e后面开始重新判断e后面数字是否合法，但e后面不能再有e和小数点（如最外层if所示）。
+                    f = false;
+                    e = true; 
+                    continue;
+                } else if(c == '.') {
+                    dot = true;
+                } else if(c >= '0' && c <= '9') {
+                    n = true;
+                }
+                f = true;
+            } else 
+                return false;
+        }
+        return f && n;
+    }
+}
+
+***
+# DFA(自动机)解法：https://leetcode.com/problems/valid-number/discuss/
