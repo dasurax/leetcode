@@ -1,0 +1,36 @@
+Given two words word1 and word2, find the minimum number of steps required to convert word1 to word2. (each operation is counted as 1 step.)
+
+You have the following 3 operations permitted on a word:
+
+a) Insert a character
+b) Delete a character
+c) Replace a character
+
+# DP。dp[i, j]保存了word1[:i]转换成word[:j]需要的最少操作数。若word1[i+1]=word2[j+1],则简单的令dp[i+1,j+1]=dp[i,j]。
+# 若word1[i+1]!=word2[j+1]，这时候有3种方式：
+# insert：相当于将word1[i+1]插入，因此操作数为把word1[:i]转换为word2[:j+1]的操作数即dp[i,j+1]，加上insert操作数1。
+# delete：相当于将word2[j+1]删除，因此操作数为把word1[:i+1]转换为word2[:j]的操作数即dp[i+1,j]，加上delete操作数1。
+# Replace：将word1[i+1]替换为word2[j+1]，因此操作数为把word1[:i]转换为word2[:j]的操作数即dp[i,j]，加上Replace操作数1。
+# 这时取三者中最小的值即可：
+
+class Solution {
+    public int minDistance(String word1, String word2) {
+        int l1 = word1.length(), l2 = word2.length(), dp[] = new int[l2 + 1], upLeft, up;
+        for(int i = 0; i < l2 + 1; i++) 
+            dp[i] = i; 
+        for(int i = 0; i < l1; i++) {
+            upLeft = dp[0];
+            dp[0] = i + 1;
+            for(int j = 0; j < l2; j++) {
+                up = dp[j + 1];
+                if(word1.charAt(i) == word2.charAt(j)) {
+                    dp[j + 1] = upLeft;
+                } else {
+                    dp[j + 1] = Math.min(Math.min(dp[j], dp[j + 1]), upLeft) + 1;
+                }
+                upLeft = up;
+            }
+        }
+        return dp[l2];
+    }
+}
