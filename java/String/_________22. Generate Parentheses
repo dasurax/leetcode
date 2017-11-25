@@ -31,13 +31,13 @@ class Solution {
     }
 }
 
-***
+*********
 # 迭代（DP）：已知f(n-1)时，f(n) = (f(0))f(n-1) + (f(1))f(n-2) + ... + (f(n-2))f(1) + (f(n-1))f(0)
 # 也就是说，当我们得到一对新的待加入的括号时，我们可以把这对括号套住i对括号，剩下的n-i-1对括号放在这对新的括号的右边。
 # 被套住的i对括号的组合方式由f(i)给出，剩下n-i-1对括号的组合方式由f(n-i-1)给出。
 # 可以证明f(n)包含于(f(0))f(n-1) + (f(1))f(n-2) + ...，且(f(0))f(n-1) + (f(1))f(n-2) + ...包含于f(n)，因此二者相等。
 # 更详细证明见：https://discuss.leetcode.com/topic/3474/an-iterative-method/18。
-
+# 因此由该递推式可知，生成的合法结果的数量是卡特兰数！！！
 
 public class Solution {
     public List<String> generateParenthesis(int n) {
