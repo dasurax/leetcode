@@ -38,23 +38,23 @@ class Solution {
 # 可以证明f(n)包含于(f(0))f(n-1) + (f(1))f(n-2) + ...，且(f(0))f(n-1) + (f(1))f(n-2) + ...包含于f(n)，因此二者相等。
 # 更详细证明见：https://discuss.leetcode.com/topic/3474/an-iterative-method/18。
 
-class Solution {
-    public class Solution {
-        public List<String> generateParenthesis(int n) {
-            List<List<String>> lists = new ArrayList<>();
-            lists.add(Collections.singletonList(""));
-            for (int i = 1; i <= n; ++i) {
-                final List<String> list = new ArrayList<>();
-                for (int j = 0; j < i; ++j) {
-                    for (final String first : lists.get(j)) {
-                        for (final String second : lists.get(i - 1 - j)) {
-                            list.add("(" + first + ")" + second);
-                        }
+
+public class Solution {
+    public List<String> generateParenthesis(int n) {
+        List<List<String>> lists = new ArrayList<>();
+        lists.add(Collections.singletonList(""));
+        for (int i = 1; i <= n; ++i) {
+            final List<String> list = new ArrayList<>();
+            for (int j = 0; j < i; ++j) {
+                for (final String first : lists.get(j)) {
+                    for (final String second : lists.get(i - 1 - j)) {
+                        list.add("(" + first + ")" + second);
                     }
                 }
-                lists.add(list);
             }
-            return lists.get(lists.size() - 1);
+            lists.add(list);
         }
+        return lists.get(lists.size() - 1);
     }
 }
+
