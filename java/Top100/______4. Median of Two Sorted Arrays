@@ -1,0 +1,167 @@
+https://leetcode.com/problems/median-of-two-sorted-arrays/description/
+
+There are two sorted arrays nums1 and nums2 of size m and n respectively.
+
+Find the median of the two sorted arrays. The overall run time complexity should be O(log (m+n)).
+
+Example 1:
+nums1 = [1, 3]
+nums2 = [2]
+
+The median is 2.0
+Example 2:
+nums1 = [1, 2]
+nums2 = [3, 4]
+
+The median is (2 + 3)/2 = 2.5
+
+# 方法一：比较两个数组中间数的值，则较小数的左边与较大数的右边都不可能出现中位数，可以等量的删除这两部分。
+# 每次都删掉一半，当长度较短的数组无法再删去时（剩余长度为1或2）,终止这个过程。因此复杂度 O(lg(min(l1, l2)))。
+
+class Solution {
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        int[] tmp;
+        if(nums1.length < nums2.length) {  // 保持长度上 nums1 > nums2
+            tmp = nums1;
+            nums1 = nums2;
+            nums2 = tmp;
+        }
+        int mid1, mid2, left1 = 0, left2 = 0, l1 = nums1.length, l2 = nums2.length, right1 = l1 - 1, right2 = l2 - 1, rm;
+        if(right2 < 0) {
+            mid1 = right1 / 2;
+            return l1 % 2 == 0 ? (nums1[mid1] + nums1[mid1 + 1]) / 2.0 : nums1[mid1];
+        }
+        while(true) {
+            mid1 = (left1 + right1) / 2;
+            mid2 = (left2 + right2) / 2;
+            l1 = right1 - left1 + 1;
+            l2 = right2 - left2 + 1;
+            if(nums1[mid1] <= nums2[mid2]) {
+                rm = Math.min(mid1 - left1, right2 - mid2);
+                if(l1 > l2 && l1 % 2 == 0 && l2 % 2 == 0)  rm--; // 这种情况下如[1,2,3,8,9,10] [4,5,6,7]，删去时会删去[6,7]，因此需要rm--
+                if(rm <= 0) break;
+                left1 = left1 + rm;
+                right2 = right2 - rm;
+            } else {
+                rm = Math.min(right1 - mid1, mid2 - left2);
+                if(rm <= 0) break;
+                right1 = right1 - rm;
+                left2 = left2 + rm;
+            }
+        }
+        // 这时nums2只剩下1个或2个元素，分情况讨论：
+        l1 = right1 - left1 + 1;
+        l2 = right2 - left2 + 1;
+        mid1 = (left1 + right1) / 2;
+        if(l2 == 1 && l1 == 1) {
+            return (nums1[left1] + nums2[left2]) / 2.0;
+        } else if(l2 == 1 && l1 % 2 == 0) {
+            return nums2[left2] <= nums1[mid1] ? nums1[mid1] : Math.min(nums2[left2], nums1[mid1 + 1]);
+        } else if(l2 == 1 && l1 % 2 == 1) {
+            return nums2[left2] <= nums1[mid1] ? 
+                (nums1[mid1] + Math.max(nums2[left2], nums1[mid1 - 1])) / 2.0: 
+                (nums1[mid1] + Math.min(nums2[left2], nums1[mid1 + 1])) / 2.0; 
+        } else if(l2 == 2 && l1 % 2 == 1) {
+            if(nums2[left2] > nums1[mid1])
+                return Math.min(nums2[left2], nums1[mid1 + 1]);
+            else if(nums2[right2] >= nums1[mid1])
+                return nums1[mid1];
+            else if(nums2[right2] <= nums1[mid1 - 1])
+                return nums1[mid1 - 1];
+            else
+                return nums2[right2];
+        } else if(l2 == 2 && l1 % 2 == 0) {
+            int num1mid1p2 = Integer.MAX_VALUE, num1mid1m1 = Integer.MIN_VALUE;
+            if(l1 != 2) {
+                num1mid1p2 = nums1[mid1 + 2];
+                num1mid1m1 = nums1[mid1 - 1];
+            }
+            if(nums2[left2] >= nums1[mid1 + 1]) 
+                return (nums1[mid1 + 1] + Math.min(num1mid1p2, nums2[left2])) / 2.0;
+            else if(nums2[left2] >= nums1[mid1])
+                return (nums2[left2] + Math.min(nums2[right2], nums1[mid1 + 1])) / 2.0;
+            else if(nums2[right2] >= nums1[mid1])
+                return (nums1[mid1] + Math.min(nums2[right2], nums1[mid1 + 1])) / 2.0;
+            else
+                return (nums1[mid1] + Math.max(nums2[right2], num1mid1m1)) / 2.0;
+        }
+        return 0;
+    }
+}
+
+# 方法二：https://leetcode.com/problems/median-of-two-sorted-arrays/discuss/2481/Share-my-O(log(min(mn))-solution-with-explanation
+# 思路是将nums1和nums2分别划分为两部分，当nums1，nums2的左半部分的数量等于右半部分，且左半部分最大数都比右半部分最小数小时，说明找到了正确的位置。
+# 查找过程中对nums1的划分位置进行折半查找，若保证nums1长度小于nums2，则复杂度 O(lg(min(l1, l2)))。
+
+class Solution {
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        int[] tmp;
+        if(nums1.length > nums2.length) {  // 保持长度上 nums1 < nums2
+            tmp = nums1;
+            nums1 = nums2;
+            nums2 = tmp;
+        }
+        int i, j, left1 = 0, m = nums1.length, n = nums2.length, right1 = m, mleft, mright;
+        while(left1 <= right1) {
+            i = (left1 + right1) / 2;
+            j = (m + n + 1) / 2 - i;  // 通过i来计算j，以保证左半部分数量等于右半部分
+            if(i > left1 && nums1[i - 1] > nums2[j])
+                right1 = i - 1;
+            else if(i < m && nums2[j - 1] > nums1[i])
+                left1 = i + 1;
+            else {
+                if(i == 0)  // 所有num1都在右半边                                                 
+                    mleft = nums2[j - 1];                
+                else if(j == 0)  // 所有num2都在右半边 
+                    mleft = nums1[i - 1];
+                else 
+                    mleft = Math.max(nums1[i - 1], nums2[j - 1]);
+                if((m + n) % 2 == 1)
+                    return mleft;
+                if(i == m)  // 所有num1都在左半边
+                    mright = nums2[j];
+                else if(j == n)  // 所有nums2都在左半边
+                    mright = nums1[i];
+                else
+                    mright = Math.min(nums1[i], nums2[j]);
+                return (mleft + mright) / 2.0;
+            }
+        }
+        return 0;
+    }
+}
+
+# 方法三：https://leetcode.com/problems/median-of-two-sorted-arrays/discuss/2499/Share-my-simple-O(log(m+n))-solution-for-your-reference?page=1
+# 将问题转换为在两个数组中找到第k个元素的问题。
+# 分别找到两个数组中的第k/2个元素，则两个数组合起来的第k元素不可能出现在较小的那个第k/2个元素的左半边。
+# 将这部分删去（n个元素），问题变成了在剩余部分中找到第k-n个元素。k每次都要减少一半，且初始值为(l1+l2+1)/2，因此复杂度为O(log(l1+l2))。
+
+class Solution {
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        int l1 = nums1.length, l2 = nums2.length, lmid, rmid;
+        double lpart, rpart;
+        lmid = (l1 + l2 + 1) / 2;
+        lpart = findkth(nums1, 0, l1 - 1, nums2, 0, l2 - 1, lmid);
+        // System.out.println(lpart);
+        if((l1 + l2) % 2 == 1)
+            return lpart;
+        rmid = lmid + 1;
+        rpart = findkth(nums1, 0, l1 - 1, nums2, 0, l2 - 1, rmid);
+        // System.out.println(rpart);
+        return (lpart + rpart) / 2.0;
+    }
+    
+    public double findkth(int[] nums1, int start1, int end1, int[] nums2, int start2, int end2, int k) {
+        int l1 = end1 - start1 + 1;
+    	  int l2 = end2 - start2 + 1;
+    	  if (l1 == 0) return nums2[start2 + k - 1];
+        if (l2 == 0) return nums1[start1 + k - 1];
+    	  if (k == 1) return Math.min(nums1[start1], nums2[start2]);
+        
+        int i = start1 + Math.min(l1, k / 2) - 1, j = start2 + Math.min(l2, k / 2) - 1;
+        if(nums1[i] > nums2[j]) 
+            return findkth(nums1, start1, end1, nums2, j + 1, end2, k - (j - start2 + 1));
+        else   
+            return findkth(nums1, i + 1, end1, nums2, start2, end2, k - (i - start1 + 1));
+    }
+}
