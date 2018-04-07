@@ -1,0 +1,56 @@
+https://leetcode.com/problems/remove-nth-node-from-end-of-list/description/
+
+Given a linked list, remove the nth node from the end of list and return its head.
+
+For example,
+
+   Given linked list: 1->2->3->4->5, and n = 2.
+
+   After removing the second node from the end, the linked list becomes 1->2->3->5.
+Note:
+Given n will always be valid.
+Try to do this in one pass.
+
+# 方法一：使用额外空间来保存
+
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        int c = 0;
+        Map<Integer, ListNode> map = new HashMap();
+        while(head != null) {
+            map.put(c, head);
+            c++;
+            head = head.next;
+        }
+        int tgt = c - n;
+        if(tgt == 0)
+            return map.getOrDefault(tgt + 1, null);
+        else {
+            map.get(tgt - 1).next = map.getOrDefault(tgt + 1, null);
+            return map.get(0);
+        }
+
+    }
+}
+
+# 方法二： 使用两个指针，fast指针比slow指针先走n步，这样当fast走到终点时，slow刚好走到倒数第n个。
+
+class Solution {
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        int c = 0, i = 0;
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode fast = dummy, slow = dummy;
+        while(i < n + 1) {
+            fast = fast.next;
+            i++;
+        }
+        while(fast != null) {
+            fast = fast.next;
+            slow = slow.next;
+        }
+        slow.next = slow.next.next;
+        return dummy.next;
+
+    }
+}
