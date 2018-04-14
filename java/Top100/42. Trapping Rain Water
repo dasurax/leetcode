@@ -1,0 +1,76 @@
+https://leetcode.com/problems/trapping-rain-water/description/
+
+Given n non-negative integers representing an elevation map where the width of each bar is 1, 
+compute how much water it is able to trap after raining.
+
+For example,
+Given [0,1,0,2,1,0,1,3,2,1,2,1], return 6.
+
+
+The above elevation map is represented by array [0,1,0,2,1,0,1,3,2,1,2,1]. 
+In this case, 6 units of rain water (blue section) are being trapped. Thanks Marcos for contributing this image!
+
+# 方法一：使用堆栈。若当前元素大于栈顶元素（对应else分支），则会弹出栈顶元素，直到当前元素小于等于栈顶元素。因此堆栈中不存在升序序列。
+# 当弹出栈顶元素时，把它作为bottom，把弹出后的栈顶作为左边的wall，当前元素作为右边的wall。
+# 显然从左wall是紧挨着bottom的，而bottom到右wall之间的元素都是小于bottom的，并且在之前的循环中已经被弹出并处理过的。
+# 因此，这时能够积攒的水量就是从当前元素到bottom的长度乘以bottom与较低的wall之间的差值。
+
+class Solution {
+    public int trap(int[] height) {
+        int t = 0, i = 0, l = height.length;
+        LinkedList<Integer> stack = new LinkedList();
+        while(i < l) {
+            if(stack.isEmpty() || height[i] <= height[stack.peek()]) {
+                stack.push(i++);
+            }
+            else {
+                int bottom = stack.pop();
+                t += stack.isEmpty() ? 0 : (Math.min(height[stack.peek()], height[i]) - height[bottom]) * (i - stack.peek() - 1);
+            }
+        }
+        return t;
+    }
+}
+
+# 方法二：保持左右两边最高的wall。若当前位置同时小于两边的wall，那么该位置所能存储的水量为该位置的高度较低的wall之间的差值，
+# 显然即使两边的wall更新（即变得更高），也不会影响这个差值。
+
+class Solution {
+    public int trap(int[] height) {
+        int t = 0, left = 0, right = height.length - 1, maxLeft = 0, maxRight = 0;
+        while(left <= right) {
+            if(height[left] < height[right]) {
+                if(height[left] > maxLeft)
+                    maxLeft = height[left];
+                else
+                    t += (maxLeft - height[left]);
+                left++;
+            } else {
+                if(height[right] > maxRight)
+                    maxRight = height[right];
+                else
+                    t += (maxRight - height[right]);
+                right--;
+            }
+        }        
+        return t;
+    }
+}
+
+# 方法三：思路与方法二相同，但方法二中实际上没有必要保存两边的最大值，只需要保持总体的最大值即可。
+# 因为当左边低于右边时，相当于右边的wall比左边的值大，这样只需用bound计算左边的wall的高度即可。
+# 一旦左边大于右边了，这时，bound记录的就是右边的wall的高度。
+
+class Solution {
+    public int trap(int[] height) {
+        int t = 0, left = 0, right = height.length - 1, lower, bound = 0;
+        while(left <= right) {
+            lower = height[left] < height[right] ? height[left++] : height[right--];
+            if(lower > bound) 
+                bound = lower;
+            else
+                t += bound - lower;
+        }        
+        return t;
+    }
+}
