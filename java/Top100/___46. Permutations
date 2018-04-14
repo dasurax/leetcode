@@ -1,0 +1,124 @@
+https://leetcode.com/problems/permutations/description/
+
+Given a collection of distinct integers, return all possible permutations.
+
+Example:
+
+Input: [1,2,3]
+Output:
+[
+  [1,2,3],
+  [1,3,2],
+  [2,1,3],
+  [2,3,1],
+  [3,1,2],
+  [3,2,1]
+]
+
+# 方法一：邻位交换法，一开始所有元素的方向指向左。找到数组中最大的满足该元素大于它所指向方向的相邻元素的那个元素，将它与所指向的元素交换位置，
+# 然后改变数组中所有大于这个元素的元素所指的方向。
+# 该算法可行的一个直观理解是，每一个元素个数为n的排列，可以通过将第n个元素，
+# 插入到元素个数为n-1的每一个排列（共(n-1)!个排列）的每一个位置（共n个位置）上来获得。
+
+class Solution {
+    public List<List<Integer>> permute(int[] nums) {
+        int n = nums.length, max, maxi;
+        Arrays.sort(nums);
+        boolean flag = true;
+        List<List<Integer>> list = new ArrayList();
+        List<Integer> tmp = new ArrayList();
+        if(n <= 0) {
+            list.add(tmp);
+            return list; 
+        }
+        for(int i = 0; i < n; i++) {
+            tmp.add(nums[i]);
+        }
+        list.add(new ArrayList(tmp));
+        int dir[] = new int[n];
+        while(true) {
+            max = Integer.MIN_VALUE;
+            maxi = -1;
+            flag = false;
+            for(int i = 0; i < n; i++) {
+                if(tmp.get(i) > max && 
+                   (i > 0 && dir[i] == 0 && tmp.get(i) > tmp.get(i - 1) || i < n - 1 && dir[i] == 1 && tmp.get(i) > tmp.get(i + 1))) {
+                    max = tmp.get(i);
+                    maxi = i;
+                    flag = true;
+                }
+            }
+            if(!flag)
+                break;
+            if(dir[maxi] == 0)
+                swap(tmp, dir, maxi, maxi - 1);
+            else
+                swap(tmp, dir, maxi, maxi + 1);
+            for(int i = 0; i < n; i++) {
+                if(tmp.get(i) > max)
+                    dir[i] = 1 - dir[i];
+            }
+            list.add(new ArrayList(tmp));
+        }
+        
+        return list;
+    }
+    
+    public void swap(List<Integer> nums, int[] dir, int i, int j) {
+        int tmp = nums.get(i), tmpdir = dir[i];
+        nums.set(i, nums.get(j));
+        nums.set(j, tmp);
+        dir[i] = dir[j];
+        dir[j] = tmpdir;
+    }
+}
+
+# 方法二：回溯
+
+class Solution {
+    public List<List<Integer>> permute(int[] nums) {
+        int n = nums.length;
+        List<List<Integer>> list = new ArrayList();
+        permute(list, new ArrayList(), nums);
+        return list;
+    }
+    
+    public void permute(List<List<Integer>> list, List<Integer> tmp, int[] nums) {
+        if(tmp.size() == nums.length) {
+            list.add(tmp);
+            return;
+        }
+        for(int i = 0; i < nums.length; i++) {
+            if(!tmp.contains(nums[i])) {
+                List<Integer> newtmp = new ArrayList(tmp);
+                newtmp.add(nums[i]);
+                permute(list, newtmp, nums);
+            }
+        }
+    }
+}
+
+# 也可以通过remove来保证回溯结果正确，只需在最后创建新的ArrayList，无需在中间过程中创建（上面写法中中间创建的newtmp在下一层递归计算完后就没用了）。
+
+class Solution {
+    public List<List<Integer>> permute(int[] nums) {
+        int n = nums.length;
+        List<List<Integer>> list = new ArrayList();
+        permute(list, new ArrayList(), nums);
+        return list;
+    }
+    
+    public void permute(List<List<Integer>> list, List<Integer> tmp, int[] nums) {
+        if(tmp.size() == nums.length) {
+            list.add(new ArrayList(tmp));
+            return;
+        }
+        for(int i = 0; i < nums.length; i++) {
+            if(!tmp.contains(nums[i])) {
+                tmp.add(nums[i]);
+                permute(list, tmp, nums);
+                tmp.remove(tmp.size()-1);
+            }
+        }
+    }
+}
