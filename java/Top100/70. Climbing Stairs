@@ -1,0 +1,60 @@
+https://leetcode.com/problems/climbing-stairs/description/
+
+You are climbing a stair case. It takes n steps to reach to the top.
+
+Each time you can either climb 1 or 2 steps. In how many distinct ways can you climb to the top?
+
+Note: Given n will be a positive integer.
+
+
+Example 1:
+
+Input: 2
+Output:  2
+Explanation:  There are two ways to climb to the top.
+
+1. 1 step + 1 step
+2. 2 steps
+Example 2:
+
+Input: 3
+Output:  3
+Explanation:  There are three ways to climb to the top.
+
+1. 1 step + 1 step + 1 step
+2. 1 step + 2 steps
+3. 2 steps + 1 step
+
+# DP的思想，有两种方法爬到i，一种是从i-1然后爬1 step，另一种是从i-2然后爬2 step。因此c[i]=c[i-1]+c[i-2]。实际上是斐波那契数列。
+
+class Solution {
+    public int climbStairs(int n) {
+        int a = 0, b = 1, tmp = 1;
+        for(int i = 0; i < n; i++) {
+            tmp = a + b;
+            a = b;
+            b = tmp;
+        }
+        return tmp;
+    }
+}
+
+# 精简版：
+
+class Solution {
+    public int climbStairs(int n) {
+        int a = 0, b = 1;
+        while(n--) 
+            a = (b += a) - a; // equivalent to: b = a + b; a = b;
+        return b;
+    }
+}
+
+# 直接用斐波那契公式：https://leetcode.com/problems/climbing-stairs/discuss/25436/Using-the-Fibonacci-formular-to-get-the-answer-directly 
+
+class Solution {
+    public int climbStairs(int n) {
+        double phi = (1 + Math.pow(5, 0.5)) / 2.0;
+        return (int)Math.round(Math.pow(phi, ++n) / Math.pow(5, 0.5));
+    }
+}
