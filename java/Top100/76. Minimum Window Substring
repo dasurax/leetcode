@@ -1,0 +1,83 @@
+https://leetcode.com/problems/minimum-window-substring/description/
+
+Given a string S and a string T, find the minimum window in S which will contain all the characters in T in complexity O(n).
+
+For example,
+S = "ADOBECODEBANC"
+T = "ABC"
+
+Minimum window is "BANC".
+
+Note:
+If there is no such window in S that covers all characters in T, return the empty string "".
+
+If there are multiple such windows, you are guaranteed that there will always be only one unique minimum window in S.
+
+# 主要思路：先找到一个合法的，然后通过移动左端来排除可能的重复。例如上例中"BECODEBANC"是一个有效的结果，但B是多余的，通过右移来找到第二个B。
+
+class Solution {
+    public String minWindow(String s, String t) {
+        Map<Character, Integer> map = new HashMap<Character, Integer>();
+        int left = -1, right = 0, leftmin = 0, rightmin = -1, slen = s.length(), tlen = t.length(), c = 0;
+        if(slen < tlen) return "";
+        if(tlen == 0) return s.substring(0, 1);
+        for(int i = 0; i < tlen; i++) {
+            map.put(t.charAt(i), map.getOrDefault(t.charAt(i), 0) + 1);
+        }
+        while(right < slen) {
+            if(map.containsKey(s.charAt(right))) {
+                if(left == -1)
+                    left = right;
+                int cur = map.get(s.charAt(right)) - 1;
+                map.put(s.charAt(right), cur);
+                if(cur >= 0) {  // 只在cur>=0时，对长度c计数。当s中出现了多于t所需的数量时,cur会小于0。
+                    c++;
+                    if(c == tlen) {  // cur==tlen时，说明t所需的所有字符都出现过了
+                        leftmin = left;
+                        rightmin = right;
+                        if(rightmin - leftmin + 1 == tlen)
+                            break;
+                    }
+                }
+                if(c == tlen && map.get(s.charAt(left)) < 0) { // 当左端的字符数小于0时，说明当前由[left,right]所构成的合法串中，
+                                                               // 左端字符是有多余的，因此可以舍弃
+                    while(!map.containsKey(s.charAt(left)) || map.get(s.charAt(left)) < 0) { // 直到找到下一合法串，且左端字符数量刚刚好
+                        if(map.getOrDefault(s.charAt(left), 0) < 0) 
+                            map.put(s.charAt(left), map.get(s.charAt(left)) + 1);
+                        left++;
+                    }
+                    if(right - left < rightmin - leftmin) {
+                        leftmin = left;
+                        rightmin = right;
+                    }
+                }
+            }
+            right++;
+        }
+        return s.substring(leftmin, rightmin + 1);
+    }
+}
+
+# 思路与上面相同，更精简（此外，数组的效率要比HashMap高）：
+
+class Solution {
+    public String minWindow(String s, String t) {
+        int[] map = new int[256];
+        int left = 0, right = 0, d = Integer.MAX_VALUE, slen = s.length(), tlen = t.length(), c = tlen, head = 0;
+        if(slen < tlen) return "";
+        if(tlen == 0) return s.substring(0, 1);
+        for(int i = 0; i < tlen; i++) {
+            map[t.charAt(i)]++;
+        }
+        while(right < slen){
+            if(map[s.charAt(right++)]-- > 0) c--; //in t
+            while(c == 0){ //valid
+                if(right - left < d)  d = right - (head = left);
+                if(map[s.charAt(left++)]++ == 0) c++;  // 当left不是t中字符时，永远不会等于0。等于零说明当前的left刚好满足合法串所需的数量。
+                                                       // 这时将c++，且map[left-1]==1，说明当右端再遇到一个left-1所对应的字符时，
+                                                       // c才会再次=0，即再次构成合法串。
+            }  
+        }
+        return d == Integer.MAX_VALUE ? "" : s.substring(head, head + d);
+    }
+}
