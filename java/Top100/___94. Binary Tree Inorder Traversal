@@ -70,30 +70,29 @@ class Solution {
 # 因此将最右侧节点的right设置为cur。
 # 当遍历到了最右侧节点后(对应cur.left == null的条件)，重新跳回到cur.right，这时会开始从cur到cur的左子树中的最右侧的节点的第二次遍历过程。
 # 当从cur开始第二次寻找cur的左子树中的最右侧的节点时，因为第一次寻找时将该节点的right设置为了cur(对应pre.right != null的条件)，
-# 会跳到cur的右子树上
+# 第二次找到时说明cur的左子树的最右节点已经遍历完了（也就是左子树遍历完了），因此该跳到cur的右子树上了。
 
 class Solution {
     public List<Integer> inorderTraversal(TreeNode root) {
         List<Integer> inorder = new ArrayList();
         if(root == null) return inorder; 
         TreeNode cur = root, pre;
-        int i = 0;
         while(cur != null) {
             if(cur.left == null) {
                 inorder.add(cur.val);
                 cur = cur.right;
             } else {
                 pre = cur.left;
-                while(pre.right != null && pre.right != cur) {
+                while(pre.right != null && pre.right != cur) { // 不要忘记pre.right != cur这个条件。
                     pre = pre.right;
                 } 
                 if(pre.right == null) {
                     pre.right = cur;
                     cur = cur.left;
                 } else {
-                    pre.right = null;  // 这一步是为了不破坏数的结果，但不影响结果。
+                    pre.right = null;  // 这一步是为了不破坏树的结构，但不影响结果。
                     inorder.add(cur.val);
-                    cur = cur.right;
+                    cur = cur.right; 
                 }
             }
         }
