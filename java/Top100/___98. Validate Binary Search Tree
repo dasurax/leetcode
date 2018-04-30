@@ -1,0 +1,72 @@
+https://leetcode.com/problems/validate-binary-search-tree/description/
+
+Given a binary tree, determine if it is a valid binary search tree (BST).
+
+Assume a BST is defined as follows:
+
+The left subtree of a node contains only nodes with keys less than the node's key.
+The right subtree of a node contains only nodes with keys greater than the node's key.
+Both the left and right subtrees must also be binary search trees.
+
+# 方法一：迭代。保存上一个遍历的结点的值，并与当前值比较。使用flag来判断当前是否已经找到最左节点。
+
+class Solution {
+    public boolean isValidBST(TreeNode root) {
+        int last = 0, flag = 1;
+        TreeNode cur = root, pre;
+        while(cur != null) {
+            if(cur.left == null) {
+                if(flag == 1) flag = 0;
+                else if(cur.val <= last) return false;
+                last = cur.val;
+                cur = cur.right;
+            } else {
+                pre = cur.left;
+                while(pre.right != null && pre.right != cur) 
+                    pre = pre.right;
+                if(pre.right == null) {
+                    pre.right = cur;
+                    cur = cur.left;
+                } else {
+                    pre.right = null;
+                    if(flag == 1) flag = 0;
+                    else if(cur.val <= last) return false;
+                    last = cur.val;
+                    cur = cur.right;
+                }
+            }
+        }
+        return true;
+    }
+}
+
+# 方法二：递归。当前节点左子树的取值范围为[最小整数, cur.val)，右子树的取值范围为(cur.val, 最大整数]，通过检查节点是否处于合法范围内来判断。
+
+public class Solution {
+    public boolean isValidBST(TreeNode root) {
+        return isValidBST(root, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+    
+    public boolean isValidBST(TreeNode root, long minVal, long maxVal) {
+        if (root == null) return true;
+        if (root.val >= maxVal || root.val <= minVal) return false;
+        return isValidBST(root.left, minVal, root.val) && isValidBST(root.right, root.val, maxVal);
+    }
+}
+
+# 方法三：递归。通过全局变量来保存上一个访问到的节点。
+
+class Solution {
+public:
+    bool isValidBST(TreeNode* root) {
+        TreeNode* prev = NULL;
+        return validate(root, prev);
+    }
+    bool validate(TreeNode* node, TreeNode* &prev) {
+        if (node == NULL) return true;
+        if (!validate(node->left, prev)) return false;  // 判断左子树是否合法
+        if (prev != NULL && prev->val >= node->val) return false; // 若左子树合法，则判断当前节点和上一个遍历过的节点的大小
+        prev = node;  
+        return validate(node->right, prev);  // 判断右子树是否合法
+    }
+};
