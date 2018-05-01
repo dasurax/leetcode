@@ -1,0 +1,93 @@
+Given a binary tree, check whether it is a mirror of itself (ie, symmetric around its center).
+
+For example, this binary tree [1,2,2,3,4,4,3] is symmetric:
+
+    1
+   / \
+  2   2
+ / \ / \
+3  4 4  3
+But the following [1,2,2,null,3,null,3] is not:
+    1
+   / \
+  2   2
+   \   \
+   3    3
+   
+# 错误方法：不能通过中序遍历得到的数组是否对称来判断树是否对称，例如2-3(3为2的右子树)和3-2(2为3的左子树)得到的顺序都是2、3。
+
+# 方法一：递归。判断当前节点的左子树和右子树的根节点是否相同。之后递归判断左子树的左子树与右子树的右子树（lTree.left, rTree.right），
+# 以及左子树的右子树与右子树的左子树（lTree.right, rTree.left）是否相同。
+
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        return root == null || isSymmetric(root.left, root.right);
+    }
+    
+    public boolean isSymmetric(TreeNode lTree, TreeNode rTree) {
+        if(lTree == null || rTree == null)
+            return lTree == rTree;  // 当二者都为null时才为真。
+        return (lTree.val == rTree.val) && isSymmetric(lTree.left, rTree.right) && isSymmetric(lTree.right, rTree.left);
+        
+    }
+}
+
+# 方法二：迭代。将数分为左子树和右子树开始遍历（使用的是
+# https://github.com/dasurax/leetcode/blob/master/java/Top100/___94.%20Binary%20Tree%20Inorder%20Traversal
+# 中的迭代中的第二种方法）。左子树先遍历完左侧分支，右子树先遍历完右侧分支。在每次入栈前判断左右子树当前位置的节点是否相同。
+# 出栈时，左子树的节点要跳到右侧分支，右子树的节点要跳到左侧分支。
+# 若左子树或右子树节点不一致，则满足lTree != null || rTree != null且不都为null，这是第一个if语句肯定是false。
+
+class Solution {
+    public boolean isSymmetric(TreeNode root) {
+        if(root == null) return true;
+        TreeNode lTree = root.left, rTree = root.right;
+        Stack<TreeNode> lStack = new Stack(), rStack = new Stack(); 
+        List<Integer> inorder = new ArrayList();
+        while(lTree != null || rTree != null || !lStack.isEmpty()) {
+            if((lTree == null ^ rTree == null) || (lTree != null && rTree != null && lTree.val != rTree.val)) return false;
+            while(lTree != null) {
+                lStack.push(lTree);
+                rStack.push(rTree);
+                lTree = lTree.left;
+                rTree = rTree.right;
+                if((lTree == null ^ rTree == null) || (lTree != null && rTree != null && lTree.val != rTree.val)) return false;
+            }
+            lTree = lStack.pop().right;
+            rTree = rStack.pop().left;
+        }
+        return true;
+    }
+}
+
+# 方法三：另一种迭代。每次同时将左右子树入栈，但顺序不同。左子树先将它的左子树入栈再将它的右子树入栈，右子树先将它的右子树入栈再将它的左子树入栈。
+
+class Solution {
+public:
+    bool isSymmetric(TreeNode *root) {
+        TreeNode *left, *right;
+        if (!root)
+            return true;
+        
+        queue<TreeNode*> q1, q2;
+        q1.push(root->left);
+        q2.push(root->right);
+        while (!q1.empty() && !q2.empty()){
+            left = q1.front();
+            q1.pop();
+            right = q2.front();
+            q2.pop();
+            if (NULL == left && NULL == right)
+                continue;
+            if (NULL == left || NULL == right)
+                return false;
+            if (left->val != right->val)
+                return false;
+            q1.push(left->left);
+            q1.push(left->right);
+            q2.push(right->right);
+            q2.push(right->left);
+        }
+        return true;
+    }
+};
