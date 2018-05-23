@@ -1,0 +1,51 @@
+https://leetcode.com/problems/flatten-binary-tree-to-linked-list/description/
+
+Given a binary tree, flatten it to a linked list in-place.
+
+For example, given the following tree:
+
+    1
+   / \
+  2   5
+ / \   \
+3   4   6
+The flattened tree should look like:
+
+1
+ \
+  2
+   \
+    3
+     \
+      4
+       \
+        5
+         \
+          6
+
+# 方法一：结果实际上是前序遍历的结果。找到当前节点左子树的按前序遍历的最后一个节点，将当前节点右子树移动到最后节点的右子树上。
+
+class Solution {
+    public void flatten(TreeNode root) {
+        if(root == null)
+            return;
+        TreeNode cur = root, pre;
+        while(cur != null) {
+            if(cur.left == null) {  // 这里if和else可以合并，因为都出现了cur = cur.right
+                cur = cur.right;
+            } else {
+                pre = cur.left;
+                while(pre.right != null || pre.left != null) {
+                    if(pre.right != null)
+                        pre = pre.right;
+                    else
+                        pre = pre.left;                
+                }
+                pre.right = cur.right;
+                cur.right = cur.left;
+                cur.left = null;
+                cur = cur.right;
+            }
+        }
+    }
+}
