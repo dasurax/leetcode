@@ -1,0 +1,119 @@
+https://leetcode.com/problems/flatten-binary-tree-to-linked-list/description/
+
+Given a binary tree, flatten it to a linked list in-place.
+
+For example, given the following tree:
+
+    1
+   / \
+  2   5
+ / \   \
+3   4   6
+The flattened tree should look like:
+
+1
+ \
+  2
+   \
+    3
+     \
+      4
+       \
+        5
+         \
+          6
+
+# 方法一：结果实际上是前序遍历的结果。找到当前节点左子树的按前序遍历的最后一个节点，将当前节点右子树移动到最后节点的右子树上。
+
+class Solution {
+    public void flatten(TreeNode root) {
+        if(root == null)
+            return;
+        TreeNode cur = root, pre;
+        while(cur != null) {
+            if(cur.left == null) {  // 这里if和else可以合并，因为都出现了cur = cur.right
+                cur = cur.right;
+            } else {
+                pre = cur.left;
+                while(pre.right != null || pre.left != null) {
+                    if(pre.right != null)
+                        pre = pre.right;
+                    else
+                        pre = pre.left;                
+                }
+                pre.right = cur.right;
+                cur.right = cur.left;
+                cur.left = null;
+                cur = cur.right;
+            }
+        }
+    }
+}
+
+# 方法二：相比于方法一只是顺序有所区别。方法一是找到当前节点左子树的按前序遍历的最后一个节点，
+# 方法二则是找到当前左子树的最右节点后就停住，即使这个最右节点有左子树也不在继续，把这个往左的过程放到后面去。
+# 当后续访问到这个最右节点时，会把这个最右节点的右子树拼接到左子树相应的位置，也就是上边说的往左的过程。
+
+class Solution {
+    public void flatten(TreeNode root) {
+        if(root == null)
+            return;
+        TreeNode cur = root, pre;
+        while(cur != null) {
+            if(cur.left != null) {
+                pre = cur.left;
+                while(pre.right != null) {
+                    pre = pre.right;       
+                }
+                pre.right = cur.right;
+                cur.right = cur.left;
+                cur.left = null;
+            }
+            cur = cur.right;
+        }
+    }
+}
+
+***
+# 方法三：递归。pre中保存的是当前节点（root）的左子树和右子树中最浅的节点（即离root最近的节点）,
+# 即如果右子树不为null，flatten(root.right,pre)返回的就是root.right，左子树同理。
+# 递归的思想还是将右子树拼接到左子树适当的位置。
+# 在同一层中先访问右子树，右子树存在就将pre放到右子树上，再将右子树放到左子树上。若右子树不存在，则直接将pre放到左子树上。最后再将左子树替换右子树。
+
+class Solution {
+    public void flatten(TreeNode root) {
+        flatten(root,null);
+    }
+    
+    private TreeNode flatten(TreeNode root, TreeNode pre) {
+        if(root==null) return pre;
+        pre=flatten(root.right,pre);    
+        pre=flatten(root.left,pre);
+        root.right=pre;
+        root.left=null;
+        pre=root;
+        return pre;
+    }
+}
+
+***
+# 方法四：深度优先遍历。每次先将右子树入栈，则出栈时左子树先出栈。
+# 若一个节点是叶节点，且位于父节点的左分支，那么该节点出栈时会将父节点的右节点拼接到自己的右节点上。
+# 若不是叶节点，则该节点出栈时，会优先将自己的左子树放到右子树上。
+class Solution {
+    public void flatten(TreeNode root) {
+        if (root == null) return;
+        Stack<TreeNode> stk = new Stack<TreeNode>();
+        stk.push(root);
+        while (!stk.isEmpty()){
+            TreeNode curr = stk.pop();
+            if (curr.right!=null)  
+                 stk.push(curr.right);
+            if (curr.left!=null)  
+                 stk.push(curr.left);
+            if (!stk.isEmpty()) 
+                 curr.right = stk.peek();
+            curr.left = null;  // dont forget this!! 
+        }
+    }
+}
