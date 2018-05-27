@@ -1,0 +1,128 @@
+https://leetcode.com/problems/longest-consecutive-sequence/description/
+
+Given an unsorted array of integers, find the length of the longest consecutive elements sequence.
+
+Your algorithm should run in O(n) complexity.
+
+Example:
+
+Input: [100, 4, 200, 1, 3, 2]
+Output: 4
+Explanation: The longest consecutive elements sequence is [1, 2, 3, 4]. Therefore its length is 4.
+
+# 方法一：通过两个map保存某个值左边及右边连续的个数。
+# 某个值左边连续的个数应该为1加上比该值小1的值的左边连续值的个数。
+# 当一个值更新了自己右边连续值个数之后，它需要把这个个数信息告诉给最左边连续的那个值，即更新最左边那个值的右边连续的个数，
+# 即right.put(key - totalLeft, totalLeft + totalRight);
+# 当一个值更新了自己左边连续值的后，同理。这样可以保证一个连续序列的最左边和最右边在map中保存的是正确的值。
+# 当访问到一个key时，该key可能因为是边界值在被访问之前就已经更新过了正确的值，而key+1或key-1的值因为不是边界值而保存这错误的值。
+# 因此要有 totalLeft = Math.max(left.get(key), left.get(key - 1) + 1); 这样的判断。
+
+class Solution {
+    public int longestConsecutive(int[] nums) {
+        if(nums.length == 0 || nums.length == 1)
+            return nums.length;
+        int max = 1;
+        int totalLeft, totalRight;
+        Map<Integer, Integer> left = new HashMap();
+        Map<Integer, Integer> right = new HashMap();
+        for(int num: nums) {
+            left.put(num, 0);
+            right.put(num, 0);
+        }
+        for(int key: left.keySet()) {
+            totalLeft = 0; totalRight = 0;
+            if(left.containsKey(key - 1)) 
+                totalLeft = Math.max(left.get(key), left.get(key - 1) + 1);
+            if(right.containsKey(key + 1)) 
+                totalRight = Math.max(right.get(key), right.get(key + 1) + 1);
+            left.put(key, totalLeft);
+            right.put(key, totalRight);
+            if(totalLeft > 0) 
+                right.put(key - totalLeft, totalLeft + totalRight);
+            if(totalRight > 0) 
+                left.put(key + totalRight, totalLeft + totalRight);
+            max = Math.max(max, totalLeft + totalRight + 1);
+        }
+        return max;
+    }
+}
+
+# 方法二：只需要遍历一次数组且只需要一个map。
+# 没有必要分别保存左边和右边的个数，因为对于key-1来说，key-1的left的值实际上就是整个连续序列的长度-1（访问到key之前key-1是右边界值）。
+# 而对于key+1来说，key+1的right的值实际上也是整个连续序列的长度-1（访问到key之前key+1是左边界值），因此只需用map在边界处保存序列长度即可。
+# 每个序列的最左边和最右边的值都在map保存该连续序列的总长度，这样map(key-1)保存的就是key左边的个数，key+1同理。
+# 此外若通过key构成了一个更长的序列，还需要更新序列边界在map中的值。
+
+public int longestConsecutive(int[] num) {
+    int res = 0;
+    HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
+    for (int n : num) {
+        if (!map.containsKey(n)) {
+            int left = (map.containsKey(n - 1)) ? map.get(n - 1) : 0;
+            int right = (map.containsKey(n + 1)) ? map.get(n + 1) : 0;
+            // sum: length of the sequence n is in
+            int sum = left + right + 1;
+            map.put(n, sum);
+            
+            // keep track of the max length 
+            res = Math.max(res, sum);
+            
+            // extend the length to the boundary(s)
+            // of the sequence
+            // will do nothing if n has no neighbors
+            map.put(n - left, sum);
+            map.put(n + right, sum);
+        }
+        else {
+            // duplicates
+            continue;
+        }
+    }
+    return res;
+}
+
+# 方法三：只找那些连续序列的起始点（即左边界）。从这些起始点计算连续序列的长度。每个序列只会被遍历一次，因此是O(n)。
+public int longestConsecutive(int[] nums) {
+    Set<Integer> set = new HashSet<>();
+    for(int n : nums) {
+        set.add(n);
+    }
+    int best = 0;
+    for(int n : set) {
+        if(!set.contains(n - 1)) {  // 不包含n-1说明n是起始点
+            int m = n + 1;
+            while(set.contains(m)) {
+                m++;
+            }
+            best = Math.max(best, m - n);
+        }
+    }
+    return best;
+}
+
+# 方法四：通过remove的方式来保证每个序列只遍历一次。
+
+public int longestConsecutive(int[] nums) {
+    if(nums == null || nums.length == 0) return 0;
+    
+    Set<Integer> set = new HashSet<Integer>();
+    
+    for(int num: nums) set.add(num);
+    int max = 1;
+    for(int num: nums) {
+        if(set.remove(num)) {//num hasn't been visited
+            int val = num;
+            int sum = 1;
+            while(set.remove(val-1)) val--;
+            sum += num - val;
+            
+            val = num;
+            while(set.remove(val+1)) val++;
+            sum += val - num;
+            
+            max = Math.max(max, sum);
+        }
+    }
+    return max;
+}
