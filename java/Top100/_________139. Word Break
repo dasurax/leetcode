@@ -1,0 +1,112 @@
+https://leetcode.com/problems/word-break/description/
+
+Given a non-empty string s and a dictionary wordDict containing a list of non-empty words, determine if s can be segmented into a space-separated sequence of one or more dictionary words.
+
+Note:
+
+The same word in the dictionary may be reused multiple times in the segmentation.
+You may assume the dictionary does not contain duplicate words.
+Example 1:
+
+Input: s = "leetcode", wordDict = ["leet", "code"]
+Output: true
+Explanation: Return true because "leetcode" can be segmented as "leet code".
+Example 2:
+
+Input: s = "applepenapple", wordDict = ["apple", "pen"]
+Output: true
+Explanation: Return true because "applepenapple" can be segmented as "apple pen apple".
+             Note that you are allowed to reuse a dictionary word.
+Example 3:
+
+Input: s = "catsandog", wordDict = ["cats", "dog", "sand", "and", "cat"]
+Output: false
+
+# 方法1：DP。We use a boolean vector dp[]. dp[i] is set to true if a valid word sequence ends there。
+# 每个dp[i]都可以由前面已经求过的dp[j](j<i)得到。
+# 若存在一个j使得dp[j]为true，即截至到j的字符串合法，且i到j也构成一个合法的单词，那么从开始到i也就构成一个合法的字符串。
+# 可以先遍历一遍字典得到最长的字符串的长度，然后用到第二个循环中以减少操作次数。
+class Solution {
+    public boolean wordBreak(String s, List<String> wordDict) {
+        int l = s.length();
+        if()
+        boolean dp[] = new boolean[l + 1];
+        dp[0] = true;
+        for(int i = 1; i <= l; i++) {
+            for(int j = 0; j < i; j++) {
+                if(dp[j] && wordDict.contains(s.substring(j, i))) {
+                    dp[i] = true;
+                    break;
+                }
+            }
+        }
+        
+         /* 另一种写法
+        for(int i = 1; i <= s.length(); i++){
+            for(String str: dict){
+                if(str.length() <= i){
+                    if(f[i - str.length()]){
+                        if(s.substring(i-str.length(), i).equals(str)){
+                            f[i] = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }*/
+        
+        return dp[l];
+    }
+}
+
+# 方法2：BFS。可以看作是从起点开始（idx=0），每找到一个合法的单词，就往前跳一段距离(单词长度)，直到最后的终点（字符串的长度）。
+
+public boolean wordBreak(String s, Set<String> dict) {
+    if (dict.contains(s)) return true;
+    Queue<Integer> queue = new LinkedList<Integer>();
+    queue.offer(0);
+    // use a set to record checked index to avoid repeated work.
+    // This is the key to reduce the running time to O(N^2).
+    Set<Integer> visited = new HashSet<Integer>();
+    visited.add(0);
+    while (!queue.isEmpty()) {
+        int curIdx = queue.poll();  // 起点curIdx
+        for (int i = curIdx+1; i <= s.length(); i++) {
+            if (visited.contains(i)) continue;  // 保存访问过的节点，减少操作
+            if (dict.contains(s.substring(curIdx, i))) {  
+                if (i == s.length()) return true;
+                queue.offer(i);  // 跳一段距离到i
+                visited.add(i);
+            }
+        }
+    }
+    return false;
+}
+
+# 方法3：DFS。思路与方法2一样，只不过是DFS，同时也要保存访问过的节点。
+
+public class Solution {
+    public boolean wordBreak(String s, Set<String> dict) {
+        // DFS
+        Set<Integer> set = new HashSet<Integer>();
+        return dfs(s, 0, dict, set);
+    }
+    
+    private boolean dfs(String s, int index, Set<String> dict, Set<Integer> set){
+        // base case
+        if(index == s.length()) return true;
+        // check memory
+        if(set.contains(index)) return false;
+        // recursion
+        for(int i = index+1;i <= s.length();i++){  // index:起点
+            String t = s.substring(index, i);
+            if(dict.contains(t))
+                if(dfs(s, i, dict, set))  // 跳一段到i
+                    return true;
+                else
+                    set.add(i);
+        }
+        set.add(index);
+        return false;
+    }
+}
