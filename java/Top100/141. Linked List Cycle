@@ -1,0 +1,24 @@
+https://leetcode.com/problems/linked-list-cycle/description/
+
+Given a linked list, determine if it has a cycle in it.
+
+Follow up:
+Can you solve it without using extra space?
+
+# 若链表中有环，那么在进行链表翻转时，环与链的相接处的节点会被访问两次（入度为2）。
+# 第一次访问到时是指向环内，翻转后指向头节点方向。第二次访问到时指向头节点方向，因此头节点也会被第二次访问到。以此来判断是否有环。
+
+public class Solution {
+    public boolean hasCycle(ListNode head) {
+        if(head == null) return false;
+        ListNode tmp = head.next, next, prev = head;
+        while(tmp != null) {
+            next= tmp.next;
+            tmp.next = prev;
+            tmp = next;
+            if(tmp == head)
+                return true;
+        }
+        return false;
+    }
+}
