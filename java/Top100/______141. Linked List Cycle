@@ -1,0 +1,82 @@
+https://leetcode.com/problems/linked-list-cycle/description/
+
+Given a linked list, determine if it has a cycle in it.
+
+Follow up:
+Can you solve it without using extra space?
+
+# 方法一：若链表中有环，那么在进行链表翻转时，环与链的相接处的节点会被访问两次（入度为2）。
+# 第一次访问到时是指向环内，翻转后指向头节点方向。第二次访问到时指向头节点方向，因此头节点也会被第二次访问到。以此来判断是否有环。
+
+public class Solution {
+    public boolean hasCycle(ListNode head) {
+        if(head == null) return false;
+        ListNode tmp = head.next, next, prev = head;
+        while(tmp != null) {
+            next= tmp.next;
+            tmp.next = prev;
+            prev = tmp;
+            tmp = next;
+            if(tmp == head)
+                return true;
+        }
+        return false;
+    }
+}
+
+# 另一种写法：最开始的prev设置为null，这样有环时第二次访问到head时，head.next为NULL，循环结束后prev的值是head，判断prev的值即可。
+
+ListNode* reverseList(ListNode* head) 
+{
+	ListNode* prev = NULL;
+	ListNode* follow = NULL;
+	while (head)
+	{
+		follow = head->next;
+		head->next = prev;
+		prev = head;
+		head = follow;
+	}
+    return prev;
+}
+bool hasCycle(ListNode *head)
+{
+	ListNode* rev = reverseList(head);
+	if (head && head->next && rev == head)
+	{
+		return true;
+	}
+	return false;
+}
+
+# 方法二：make all the node you visited links to the head ListNode. once you reach a new ListNode,
+# see whether its next point is the head,
+# if it is, means the node you've already visited,which means the link has a cycle.
+
+public class Solution {
+    public boolean hasCycle(ListNode head) {
+    	ListNode p = head,pre = head;
+    	while(p != null && p.next != null){
+    		if (p.next == head) return true;
+    		p = p.next;
+    		pre.next = head;
+    		pre = p;
+    	}
+        return false;
+    }
+}
+
+# 方法3：快慢指针。因为进环后永远不会出环，且快的指针每次比慢的指针多走一步，
+# 这样当两个指针都进环后，最多只要环中元素个数n步，快指针就会追上慢指针。
+
+public boolean hasCycle(ListNode head) {
+    if(head==null) return false;
+    ListNode walker = head;
+    ListNode runner = head;
+    while(runner.next!=null && runner.next.next!=null) {
+        walker = walker.next;
+        runner = runner.next.next;
+        if(walker==runner) return true;
+    }
+    return false;
+}
