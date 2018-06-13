@@ -1,0 +1,61 @@
+https://leetcode.com/problems/linked-list-cycle-ii/description/
+
+Given a linked list, return the node where the cycle begins. If there is no cycle, return null.
+
+Note: Do not modify the linked list.
+
+Follow up:
+Can you solve it without using extra space?
+
+# 使用快慢指针，设相遇所用的步数为k，环开始的节点到head的距离为s，两个点相遇的地方到环开始的节点的距离为m。
+# 有s+m = s+m+nr，且s+m=k, s+m+nr=2k，因此2(s+m)=s+m+nr => s+m=nr。
+# 也就是如果从 m 出发，再走s步，正好会回到环开始的节点。
+# 同时若令另外一个指针从head开始走s步，也会到达环开始的节点（因为我们的假设就是环开始的节点到head的距离为s）。
+# 这样从令一个指针从 m 出发走，另一个指针从head出发，走s步，那么两个指针一定会在环开始的节点相遇。
+
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        if(head == null || head.next == null)
+            return null;
+        boolean hasCycle = false;
+        ListNode slow = head, fast = head;
+        while(fast.next != null && fast.next.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            if(slow == fast) {
+                hasCycle = true;
+                break;
+            }                
+        }
+        if(!hasCycle) return null;
+        slow = head;
+        while(slow != fast) {
+            slow = slow.next;
+            fast = fast.next;
+        }
+        return slow;
+    }
+}
+
+# 另一种简洁写法：
+
+public class Solution {
+    public ListNode detectCycle(ListNode head) {
+        if(head == null || head.next == null)
+            return null;
+        ListNode slow = head, fast = head;
+        while(fast.next != null && fast.next.next != null) {
+            slow = slow.next;
+            fast = fast.next.next;
+            if(slow == fast) {
+                slow = head;
+                while(slow != fast) {
+                    slow = slow.next;
+                    fast = fast.next;
+                }
+                return slow;
+            }                
+        }
+        return null;
+    }
+}
