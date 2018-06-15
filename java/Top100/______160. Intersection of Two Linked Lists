@@ -1,0 +1,76 @@
+https://leetcode.com/problems/intersection-of-two-linked-lists/description/
+
+Write a program to find the node at which the intersection of two singly linked lists begins.
+
+
+For example, the following two linked lists:
+
+A:          a1 → a2
+                   ↘
+                     c1 → c2 → c3
+                   ↗            
+B:     b1 → b2 → b3
+begin to intersect at node c1.
+
+
+Notes:
+
+If the two linked lists have no intersection at all, return null.
+The linked lists must retain their original structure after the function returns.
+You may assume there are no cycles anywhere in the entire linked structure.
+Your code should preferably run in O(n) time and use only O(1) memory.
+
+# 方法一：从相交的点以后，两个链的节点就是完全相同的了。因此可以先求出两个链的长度，让长的链走到剩余距离与短的链长度相同的地方，再开始比较。
+
+public class Solution {
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        if(headA == null || headB == null) return null;
+        int l1 = 0, l2 = 0, tmp;
+        ListNode tmpA = headA, tmpB = headB;
+        while(tmpA != null) {
+            tmpA = tmpA.next;
+            l1++;
+        }
+        while(tmpB != null) {
+            tmpB = tmpB.next;
+            l2++;
+        }
+        tmpA = headA;
+        tmpB = headB;
+        while (l1 > l2) {
+            tmpA = tmpA.next;
+            l1--;
+        }
+        while (l1 < l2) {
+            tmpB = tmpB.next;
+            l2--;
+        }
+        while(tmpA != tmpB) {
+            tmpA = tmpA.next;
+            tmpB = tmpB.next;
+        }
+        return tmpA;
+    }
+}
+
+# 方法二：不用提前计算两个链的长度。从头开始对两个链进行访问，如果某个指针p1先访问完了短的链，就开始访问长的链。
+# 当先访问长的链的指针p2访问完成后，开始访问短的链，此时，p1所处的位置，正是上面所说的 “长的链走到剩余距离与短的链长度相同的地方”。
+# 若两个链长度不同，那么一定会进行这种交替的访问。
+# 最终的a要么是相交点，要么是null。
+
+public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+    //boundary check
+    if(headA == null || headB == null) return null;
+    
+    ListNode a = headA;
+    ListNode b = headB;
+    
+    //if a & b have different len, then we will stop the loop after second iteration
+    while( a != b){
+    	//for the end of first iteration, we just reset the pointer to the head of another linkedlist
+        a = a == null? headB : a.next;
+        b = b == null? headA : b.next;    
+    }
+    
+    return a;
+}
