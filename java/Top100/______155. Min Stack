@@ -1,0 +1,162 @@
+https://leetcode.com/problems/min-stack/description/
+
+Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.
+
+push(x) -- Push element x onto stack.
+pop() -- Removes the element on top of the stack.
+top() -- Get the top element.
+getMin() -- Retrieve the minimum element in the stack.
+Example:
+MinStack minStack = new MinStack();
+minStack.push(-2);
+minStack.push(0);
+minStack.push(-3);
+minStack.getMin();   --> Returns -3.
+minStack.pop();
+minStack.top();      --> Returns 0.
+minStack.getMin();   --> Returns -2.
+
+# 方法1：这个问题的思路就是，当更新min值时，我们要保存旧的min值。
+# 第一种方法就是，先将旧的min值入栈，再将新的min值入栈。这样，当栈顶元素等于min值时，弹出该值后，栈顶元素就是旧的min值。
+
+class MinStack {
+    /** initialize your data structure here. */
+    private int min = Integer.MAX_VALUE;
+    private Stack<Integer> stack = new Stack<>();
+    
+    public MinStack() {
+        
+    }
+    
+    public void push(int x) {
+        if(x <= min) { // 这里一定要有等于号，因为栈中可以保存多个同一最小值。
+            stack.push(min);
+            min = x;
+        }
+        stack.push(x);
+    }
+    
+    public void pop() {
+        if(stack.pop() == min) {
+            min = stack.pop(); //因为旧的最小值是额外入栈的，这里需要弹出栈。
+        }
+    }
+    
+    public int top() {
+        return stack.peek();
+    }
+    
+    public int getMin() {
+        return min;
+    }
+}
+
+# 方法2：思路同上，但每次push的是x-min。
+# 执行top操作时，如果栈顶元素大于0，只需将栈顶的值加上min就可以还原出原来的值。如果栈顶元素小于0，说明刚入栈的就是当前的最小值，取min即可。
+# 执行pop操作时，如果栈顶元素小于0，需要还原出之前的最小值。栈顶元素为min-premin，因此只需用min减去栈顶值（min=min-pop）就能得到premin。
+# 这里用Long来保存，避免极端情况下（例如最大INT减最小INT）发生溢出。同时取值时还需要强制转换为int。
+
+public class MinStack {
+    long min;
+    Stack<Long> stack;
+
+    public MinStack(){
+        stack=new Stack<>();
+    }
+    
+    public void push(int x) {
+        if (stack.isEmpty()){
+            stack.push(0L);
+            min=x;
+        }else{
+            stack.push(x-min);//Could be negative if min value needs to change
+            if (x<min) min=x;
+        }
+    }
+
+    public void pop() {
+        if (stack.isEmpty()) return;
+        
+        long pop=stack.pop();
+        
+        if (pop<0)  min=min-pop;//If negative, increase the min value
+        
+    }
+
+    public int top() {
+        long top=stack.peek();
+        if (top>0){
+            return (int)(top+min);
+        }else{
+           return (int)(min);
+        }
+    }
+
+    public int getMin() {
+        return (int)min;
+    }
+}
+
+# 方法3：自定义Node节点，节点中保存push该节点时的min值。
+
+class MinStack {
+    private Node head;
+    
+    public void push(int x) {
+        if(head == null) 
+            head = new Node(x, x);
+        else 
+            head = new Node(x, Math.min(x, head.min), head);
+    }
+
+    public void pop() {
+        head = head.next;
+    }
+
+    public int top() {
+        return head.val;
+    }
+
+    public int getMin() {
+        return head.min;
+    }
+    
+    private class Node {
+        int val;
+        int min;
+        Node next;
+        
+        private Node(int val, int min) {
+            this(val, min, null);
+        }
+        
+        private Node(int val, int min, Node next) {
+            this.val = val;
+            this.min = min;
+            this.next = next;
+        }
+    }
+}
+
+# 方法4:用另一个栈保存最小值。
+
+class MinStack {
+private:
+    stack<int> s1;
+    stack<int> s2;
+public:
+    void push(int x) {
+	    s1.push(x);
+	    if (s2.empty() || x <= getMin())  s2.push(x);	    
+    }
+    void pop() {
+	    if (s1.top() == getMin())  s2.pop();
+	    s1.pop();
+    }
+    int top() {
+	    return s1.top();
+    }
+    int getMin() {
+	    return s2.top();
+    }
+};
