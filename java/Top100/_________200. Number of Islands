@@ -1,0 +1,131 @@
+https://leetcode.com/problems/number-of-islands/description/
+
+Given a 2d grid map of '1's (land) and '0's (water), count the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.
+
+Example 1:
+
+Input:
+11110
+11010
+11000
+00000
+
+Output: 1
+Example 2:
+
+Input:
+11000
+11000
+00100
+00011
+
+Output: 3
+
+# 方法一：FloodFill。按顺序遍历二维数组，每遇到一个1，通过递归将所有与它相连的1都置为0。
+
+public class Solution {
+    private int n;
+    private int m;
+
+    public int numIslands(char[][] grid) {
+        int count = 0;
+        n = grid.length;
+        if (n == 0) return 0;
+        m = grid[0].length;
+        for (int i = 0; i < n; i++){
+            for (int j = 0; j < m; j++)
+                if (grid[i][j] == '1') {
+                    DFSMarking(grid, i, j);
+                    ++count;
+                }
+        }    
+        return count;
+    }
+
+    private void DFSMarking(char[][] grid, int i, int j) {
+        if (i < 0 || j < 0 || i >= n || j >= m || grid[i][j] != '1') return;
+        grid[i][j] = '0';
+        DFSMarking(grid, i + 1, j);
+        DFSMarking(grid, i - 1, j);
+        DFSMarking(grid, i, j + 1);
+        DFSMarking(grid, i, j - 1);
+    }
+}
+
+# 方法2：union-found。quick union效率要远高于quick find。在find时使用Path compression也能提高效率。
+# 记录所有1的个数count，每经过一次union就将count-1，最终所剩的count即为所求。
+# union时只需要union右和下。
+
+class Solution {
+    int id[];
+    int N;
+    int count = 0;
+    public int numIslands(char[][] grid) {
+        if(grid.length == 0) return 0;
+        int row = grid.length, col = grid[0].length;
+        N = row * col;
+        id = new int[N];
+        for(int i = 0; i < row; i++) {
+            for(int j = 0; j < col; j++) {
+                if(grid[i][j] == '1') {
+                    int p = i * col + j;
+                    count++;
+                    id[p] = p;
+                }
+            }
+        }
+        for(int i = 0; i < N; i++) {
+            id[i] = i;
+        }
+        for(int i = 0; i < row; i++) {
+            for(int j = 0; j < col; j++) {
+                if(j != col - 1 && grid[i][j] == '1' && grid[i][j + 1] == '1') //right
+                    union(id[i * col + j], id[i * col + j + 1]);
+                if(i != 0 && grid[i][j] == '1' && grid[i - 1][j] == '1') //bottom
+                    union(id[i * col + j], id[(i - 1) * col + j]);
+                
+            }
+        }
+        return count;
+    }
+    
+    public int find(int p) {
+        while(p != id[p]) {
+            id[p] = id[id[p]];
+            p = id[p];
+        }
+        return p;
+    }
+    
+    private int find3(int i) {
+        int tmp = i;
+        while(id[i] != i) 
+            i = id[i];
+        id[tmp] = i;
+        return i; 
+    }
+    
+    // private void union(int i, int j) {
+    //     if(id[i] > id[j])
+    //         id[i] = id[j];
+    //     else
+    //         id[j] = id[i];
+    // }
+    
+    public void union(int node1, int node2) {  
+        int find1 = find(node1);
+        int find2 = find(node2);
+        if(find1 != find2) {
+            count--;
+            id[find1] = find2;
+        }
+    }
+    public int find2 (int node) {  
+        if (id[node] == node) {  
+            return node;
+        }
+        id[node] = find(id[node]);  
+        return id[node];
+    }
+    
+}
