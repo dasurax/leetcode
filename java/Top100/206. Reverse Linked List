@@ -1,0 +1,62 @@
+https://leetcode.com/problems/reverse-linked-list/description/
+
+Reverse a singly linked list.
+
+Example:
+
+Input: 1->2->3->4->5->NULL
+Output: 5->4->3->2->1->NULL
+Follow up:
+
+A linked list can be reversed either iteratively or recursively. Could you implement both?
+
+# 方法一：迭代。
+
+class Solution {
+    public ListNode reverseList(ListNode head) {
+        if(head == null || head.next == null) 
+            return head;
+        ListNode pre = null, tmp = head, next;
+        while(tmp != null) {
+            next = tmp.next;
+            tmp.next = pre;
+            pre = tmp;
+            tmp = next;
+        }
+        return pre;
+    }
+}
+
+# 方法二：递归。先在每一层改变方向，最后返回新的头节点。
+
+class Solution {
+    public ListNode reverseList(ListNode head) {
+        if(head == null || head.next == null) 
+            return head;
+        return reverse(null, head);
+    }
+    
+    public ListNode reverse(ListNode pre, ListNode cur) {
+        if(cur.next == null) {
+            cur.next = pre;
+            return cur;
+        }
+        ListNode next = cur.next;
+        cur.next = pre;
+        return reverse(cur, next);
+    }
+}
+
+# 另一种递归。先找到新的头节点，再逐层改变方向。
+
+public class Solution {
+    public ListNode reverseList(ListNode head) {
+        if(head==null || head.next==null)
+            return head;
+        ListNode nextNode=head.next;
+        ListNode newHead=reverseList(nextNode);
+        nextNode.next=head;
+        head.next=null;
+        return newHead;
+    }
+}
