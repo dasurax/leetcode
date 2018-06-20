@@ -1,0 +1,124 @@
+https://leetcode.com/problems/course-schedule/description/
+
+There are a total of n courses you have to take, labeled from 0 to n-1.
+
+Some courses may have prerequisites, for example to take course 0 you have to first take course 1, which is expressed as a pair: [0,1]
+
+Given the total number of courses and a list of prerequisite pairs, is it possible for you to finish all courses?
+
+Example 1:
+
+Input: 2, [[1,0]] 
+Output: true
+Explanation: There are a total of 2 courses to take. 
+             To take course 1 you should have finished course 0. So it is possible.
+Example 2:
+
+Input: 2, [[1,0],[0,1]]
+Output: false
+Explanation: There are a total of 2 courses to take. 
+             To take course 1 you should have finished course 0, and to take course 0 you should
+             also have finished course 1. So it is impossible.
+Note:
+
+The input prerequisites is a graph represented by a list of edges, not adjacency matrices. Read more about how a graph is represented.
+You may assume that there are no duplicate edges in the input prerequisites.
+
+# 拓扑序问题。
+# 方法一：BFS（Kahn’s algorithm）。将所有入度为0的节点加入队列，每取出一个节点，将这个节点所指向的节点的入度数减一，若减为0，则被指向的节点也入队。
+# 若入队总次数等于节点数，则说明不存在环，存在拓扑序。
+
+public class Solution {
+    public boolean canFinish(int numCourses, int[][] prerequisites) {
+        ArrayList[] graph = new ArrayList[numCourses];
+        int[] degree = new int[numCourses];
+        Queue queue = new LinkedList();
+        int count=0;
+        
+        for(int i=0;i<numCourses;i++)
+            graph[i] = new ArrayList();
+            
+        for(int i=0; i<prerequisites.length;i++){
+            degree[prerequisites[i][1]]++;
+            graph[prerequisites[i][0]].add(prerequisites[i][1]);
+        }
+        for(int i=0; i<degree.length;i++){
+            if(degree[i] == 0){
+                queue.add(i);
+                count++;
+            }
+        }
+        
+        while(queue.size() != 0){
+            int course = (int)queue.poll();
+            for(int i=0; i<graph[course].size();i++){
+                int pointer = (int)graph[course].get(i);
+                degree[pointer]--;
+                if(degree[pointer] == 0){
+                    queue.add(pointer);
+                    count++;
+                }
+            }
+        }
+        if(count == numCourses)
+            return true;
+        else    
+            return false;
+    }
+}
+
+# 方法2：DFS（环路检测）。每次访问到一个节点时，标记为1，表示已访问过，同时访问指向它的节点。
+# 如果访问某一节点时，发现该节点指向他的节点已经被访问过，如 3->2->1->3，最先访问3，然后1，然后2，然后又3，则说明肯定存在环。
+# 若某节点入度为0，或是指向该点的节点在递归过程中被确定不包含环（if (!dfs(eligibleCourse,courses, visited)) return false; ），
+# 那么将该节点标记为2，表示该节点已经被从图中拿走。
+
+public class Solution {
+
+    public boolean canFinish(int numCourses, int[][] prerequisites) {
+        if(numCourses == 0 || prerequisites == null || prerequisites.length == 0) return true; //??
+
+        // create the array lists to represent the courses
+        List<List<Integer>> courses = new ArrayList<List<Integer>>(numCourses);
+        for(int i=0; i<numCourses; i++) {
+            courses.add(new ArrayList<Integer>());
+        }
+
+        // create the dependency graph
+        for(int i=0; i<prerequisites.length; i++) {
+            courses.get(prerequisites[i][1]).add(prerequisites[i][0]);
+        }
+
+        int[] visited = new int[numCourses]; 
+
+        // dfs visit each course
+        for(int i=0; i<numCourses; i++) {
+            if(visited[i] == 2)
+                continue;
+            if(!dfs(i,courses, visited)) return false; 
+        }
+
+        return true;
+    }
+
+    private boolean dfs(int course, List<List<Integer>> courses, int[] visited) {
+
+        visited[course] = 1; // mark it being visited
+
+        List<Integer> eligibleCourses = courses.get(course); // get its children
+
+        // dfs its children
+        for(int i=0; i<eligibleCourses.size(); i++) {
+            int eligibleCourse = eligibleCourses.get(i).intValue();
+
+            if(visited[eligibleCourse] == 1) return false; // has been visited while visiting its children - cycle !!!!
+            if(visited[eligibleCourse]  == 0) { // not visited
+               if (!dfs(eligibleCourse,courses, visited)) return false; 
+            }
+
+        }
+
+        visited[course] = 2; // mark it done visiting
+        return true;
+
+    }
+}
