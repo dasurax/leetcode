@@ -1,0 +1,207 @@
+https://leetcode.com/problems/kth-largest-element-in-an-array/description/
+
+Find the kth largest element in an unsorted array. Note that it is the kth largest element in the sorted order, not the kth distinct element.
+
+Example 1:
+
+Input: [3,2,1,5,6,4] and k = 2
+Output: 5
+Example 2:
+
+Input: [3,2,3,1,2,4,5,5,6] and k = 4
+Output: 4
+Note: 
+You may assume k is always valid, 1 ≤ k ≤ array's length.
+
+# 方法一：各种排序算法，复杂度O(nlogn)。
+# 其中使用最大堆（https://www.jianshu.com/p/21bef3fc3030）可以达到O(klogn)。
+# build_max_heap是建堆过程。因为一个最大堆所代表的数中，每个子树也是一个最大堆，因此可以递归的从最小的子树开始构建最大堆。
+# 先找到最后一个非叶节点（即最后一颗子树的根节点，i = (heap_size >> 1)），将这个子树最大堆化，然后再最大堆化前面的所有子树。
+# 最大化是“下沉”的过程。若根节点小于左节点或右节点，则将根结点与左右节点中较大的那个交换。
+# 根节点交换位置后可能仍不满足最大堆的要求，需要继续通过递归的方式进行最大堆化。
+# 可证建堆过程复杂度O(n)（https://www.zhihu.com/question/20729324，https://bbs.csdn.net/topics/120060305）。
+# 每次删除最大堆的第一个元素（即最大元素，将该元素与堆中最后一个元素交换），重新最大堆化的复杂度为O(logn)，总过需要删除k-1次。
+# 因此复杂度O(klogn)。
+
+class Solution {
+    public:   
+        inline int left(int idx) {
+            return (idx << 1) + 1;
+        }
+        inline int right(int idx) {
+            return (idx << 1) + 2;
+        }
+        void max_heapify(vector<int>& nums, int idx) {
+            int largest = idx;
+            int l = left(idx), r = right(idx);
+            if (l < heap_size && nums[l] > nums[largest]) largest = l;
+            if (r < heap_size && nums[r] > nums[largest]) largest = r;
+            if (largest != idx) {
+                swap(nums[idx], nums[largest]);
+                max_heapify(nums, largest);
+            }
+        }
+        void build_max_heap(vector<int>& nums) {
+            heap_size = nums.size();
+            for (int i = (heap_size >> 1) - 1; i >= 0; i--)
+                max_heapify(nums, i);
+        }
+        int findKthLargest(vector<int>& nums, int k) {
+            build_max_heap(nums);
+            for (int i = 0; i < k; i++) {
+                swap(nums[0], nums[heap_size - 1]);
+                heap_size--;
+                max_heapify(nums, 0);
+            }
+            return nums[heap_size];
+        }
+    private:
+        int heap_size;
+}
+
+
+# 方法二：优先级队列。保持队列中只有k个元素。优先级队列会默认弹出最小的元素。复杂度O(nlogk)。
+
+public int findKthLargest(int[] nums, int k) {
+
+    final PriorityQueue<Integer> pq = new PriorityQueue<>();
+    for(int val : nums) {
+        pq.offer(val);
+
+        if(pq.size() > k) {
+            pq.poll();
+        }
+    }
+    return pq.peek();
+}
+
+# 方法三：quickselect。类似于quicksort的思路，将所有大于pivot的元素都挪到pivot左边，小于pivot的元素都挪到pivot右边。
+# 此时pivot的位置left表示pivot是第left+1大的元素，因此若left == k - 1，则表明当前位置left对应的就是第k大的元素。
+# 若left < k - 1，说明应该在left的右半部分查找，left > k - 1时同理。
+# 平均情况下复杂度O(n)，要想达到“平均”，需要随机打乱原数组（shuffle函数）。最坏情况下O(n*n)。
+# 下面的写法中，通过一个变量left，不断的将大于等于pivot的元素交换到前面去，当遍历完整个数组时，left左边的就是所有大于等于left的元素。
+# left最终停下的位置所对应的元素一定是小于pivot的，把它和end位置（即pivot的位置）交换，即可保证left左右分别大于和小于它。
+
+class Solution {
+    
+    private void shuffle(int a[]) {
+        final Random random = new Random();
+        for(int ind = 1; ind < a.length; ind++) {
+            final int r = random.nextInt(ind + 1);
+            swap(a, ind, r);
+        }
+    }
+    
+    public int findKthLargest(int[] nums, int k) {
+        shuffle(nums);
+        if (nums == null || nums.length == 0) return Integer.MAX_VALUE;
+        return findKthLargest(nums, 0, nums.length - 1, k);
+    }    
+
+    public int findKthLargest(int[] nums, int start, int end, int k) {// quick select: kth smallest
+        if (start > end) return Integer.MAX_VALUE;
+
+        int pivot = nums[end];// Take A[end] as the pivot, 
+        int left = start;
+        for (int i = start; i < end; i++) {
+            if (nums[i] >= pivot) // Put numbers < pivot to pivot's left
+                swap(nums, left++, i);			
+        }
+        swap(nums, left, end);// Finally, swap A[end] with A[left]
+
+        if (left == k - 1)// Found kth smallest number
+            return nums[left];
+        else if (left < k - 1)// Check right part
+            return findKthLargest(nums, left + 1, end, k);
+        else // Check left part
+            return findKthLargest(nums, start, left - 1, k);
+    } 
+
+    void swap(int[] A, int i, int j) {
+        int tmp = A[i];
+        A[i] = A[j];
+        A[j] = tmp;				
+    }
+    
+}
+
+# 第二种分成左右部分的写法：用两个指针分别从左边和右边开始，左边遇到比pivot小的就停止，右边遇到比pivot大的就停止，然后进行交换，直到左右指针交叉。
+# 因为right右边一定小于等于pivot，且right大于等于pivot（因为right最终停在left左边，而left左边的值都是大于等于pivot的），
+# 最后将pivot位置与right交换后就可以得到满足条件的划分。
+
+class Solution {
+    private void shuffle(int a[]) {
+        final Random random = new Random();
+        for(int ind = 1; ind < a.length; ind++) {
+            final int r = random.nextInt(ind + 1);
+            swap(a, ind, r);
+        }
+    }
+    
+    public int findKthLargest(int[] nums, int k) {
+        shuffle(nums);
+        int pivot = nums[0], p = 0, start = 0, left = 1, end = nums.length - 1, right = nums.length - 1, tmp;
+        while(true) {
+            while(left <= right) {
+                while(left <= right && nums[left] >= pivot)
+                    left++;
+                while(left <= right && nums[right] <= pivot)
+                    right--;
+                if(left <= right) {
+                    tmp = nums[left];
+                    nums[left++] = nums[right];
+                    nums[right--] = tmp;
+                }
+            }
+            tmp = nums[right];
+            nums[right] = nums[start];
+            nums[start] = tmp;
+            if(right == k - 1) {
+                return pivot; 
+            } else if(right < k - 1) {
+                start = right + 1;
+                left = start + 1;
+                right = end;
+            } else {
+                right--;
+                left = start + 1;
+                end = right;
+            }
+            pivot = nums[start];
+        }
+    }
+    
+    void swap(int[] A, int i, int j) {
+        int tmp = A[i];
+        A[i] = A[j];
+        A[j] = tmp;				
+    }    
+}
+
+# 另一种简洁写法：写成迭代的形式（实际上同上面的写法）。
+
+class Solution { 
+public:
+    int partition(vector<int>& nums, int left, int right) {
+        int pivot = nums[left];
+        int l = left + 1, r = right;
+        while (l <= r) {
+            if (nums[l] < pivot && nums[r] > pivot)
+                swap(nums[l++], nums[r--]);
+            if (nums[l] >= pivot) l++; 
+            if (nums[r] <= pivot) r--;
+        }
+        swap(nums[left], nums[r]);
+        return r;
+    }
+    
+    int findKthLargest(vector<int>& nums, int k) {
+        int left = 0, right = nums.size() - 1;
+        while (true) {
+            int pos = partition(nums, left, right);
+            if (pos == k - 1) return nums[pos];
+            if (pos > k - 1) right = pos - 1;
+            else left = pos + 1;
+        }
+    }
+};
