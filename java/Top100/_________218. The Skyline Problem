@@ -1,0 +1,71 @@
+https://leetcode.com/problems/the-skyline-problem/description/
+
+# 方法一：https://www.youtube.com/watch?v=GSBLe8cKu0s。
+# 考虑每一给长方体的左上和右上的两点（KeyPoint）。只有当这些点出现在另一个长方体的一对顶点之间时，这些点的高度才有可能被更新。
+# 为了表示一个点在多个点之间，可以先将所有的keypoint按位置从左到右排序，若遇到的是左顶点就将它的高度入栈，高度越高，优先级越大，
+# 遇到右顶点则出栈（表示这个长方体不会对后面的其他长方体产生）。
+# 这样当某一个keypoint入栈时，如果发现栈顶元素比自己大，
+# 说明该定点是被包含在更高的building中(因为此时这个building右顶点还没遍历到，否则这个高度会被弹出队列)。
+# 每当出栈入栈栈顶的最大值发生变化时，就把当前元素的位置和出栈入栈后最新的栈顶的最大值加入到结果中。
+# 在对keypoint从左到右排序时，需要考虑三种边界情况：
+# 两个building拥有相同位置的左顶点或右顶点，以及一个building的左顶点与另一个building的右顶点位置相同。
+# 在入队时，先将一个dummy顶点(k=0,v=1)入队，因为节点中不包含高度为0的点，这个dummy会永远在队列中，
+# 这样当出现空地时（空地左边的building的每一个顶点都已经入栈出栈完毕，只剩下dummy），可以保证输出空地左边点的高度为0。
+# PQ的删除操作的复杂度为O(n)，为了保证总复杂度为O(nlogn)，可以使用treemap。
+
+public class Solution {
+    
+    class Point implements Comparable<Point> {
+        int pos;
+        int h;
+        boolean isLeft;
+        
+        public Point(int pos, int h, boolean isLeft) {
+            this.pos = pos;
+            this.h = h;
+            this.isLeft = isLeft;
+        }
+        
+        @Override
+        public int compareTo(Point point) {
+            if(this.pos != point.pos)
+                return this.pos - point.pos;
+            // 上面所说的三种边界情况统统可以由下面这行代码处理。
+            return (this.isLeft ? -this.h : this.h) - (point.isLeft ? -point.h : point.h);
+        } 
+    }
+    
+    public List<int[]> getSkyline(int[][] buildings) {
+        TreeMap<Integer, Integer> queue = new TreeMap<>();
+        List<Point> points = new ArrayList<>();
+        List<int[]> res = new ArrayList<>();
+        int preMax = -1, curMax;
+        for(int[] building: buildings) {
+            points.add(new Point(building[0], building[2], true));
+            points.add(new Point(building[1], building[2], false));
+        }
+        Collections.sort(points);
+        queue.put(0, 1);
+        for(Point point: points) {
+            if(point.isLeft) {
+                queue.compute(point.h, (key, value)-> { // compute将point.h对应的value修改为函数中return的值，value为null则表示key不存在。
+                    if(value != null)
+                        return value + 1;
+                    return 1;
+                });
+            } else {
+                queue.compute(point.h, (key, value)-> {
+                    if(value == 1)
+                        return null;
+                    return value - 1;
+                });
+            }
+            curMax = queue.lastKey(); //lastKey()返回最大的key值，即队列中的最大的高度。
+            if(curMax != preMax) {
+                res.add(new int[] {point.pos, curMax});
+                preMax = curMax;
+            }
+        }
+        return res;
+    }
+}
