@@ -1,0 +1,65 @@
+https://leetcode.com/problems/palindrome-linked-list/description/
+
+Given a singly linked list, determine if it is a palindrome.
+
+Example 1:
+
+Input: 1->2
+Output: false
+Example 2:
+
+Input: 1->2->2->1
+Output: true
+Follow up:
+Could you do it in O(n) time and O(1) space?
+
+# 方法一：翻转前半部分的链表，然后同后半部分比较。通过快慢指针来找到中间位置，同时翻转链表。
+
+class Solution {
+    public boolean isPalindrome(ListNode head) {
+        if(head == null || head.next == null)
+            return true;
+        int c = 0;
+        ListNode slow = head, fast = head.next, next, pre = null;
+        while(fast.next != null && fast.next.next != null) {
+            fast = fast.next.next;
+            next = slow.next;
+            slow.next = pre;
+            pre = slow;
+            slow = next;
+        }
+        if(fast.next == null) //分 别对应奇数个节点和偶数个节点的情况。
+            fast = slow.next;
+        else {
+            fast = slow.next.next;
+        }
+        slow.next = pre;
+        while(slow != null) {
+            if(slow.val != fast.val)
+                return false;
+            slow = slow.next;
+            fast = fast.next;
+        }
+        return true;
+    }
+}
+
+# 方法二：递归解法。递归到最深层后（即最后一个节点），每回到上一层的同时（相当于反向遍历），将正向遍历的节点tmp向前移动一步，保持位置的镜面关系。
+
+class Solution {
+    ListNode tmp;
+    public boolean isPalindrome(ListNode head) {
+        if(head == null || head.next == null)
+            return true;
+        tmp = head;
+        return check(head);
+    }
+    
+    public boolean check(ListNode node) {
+        if(node == null) return true;
+        boolean isPal = check(node.next) && tmp.val == node.val;
+        tmp = tmp.next;
+        return isPal;
+    }
+}
+
