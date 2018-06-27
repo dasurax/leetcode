@@ -1,0 +1,111 @@
+Given an array nums, there is a sliding window of size k which is moving from the very left of the array to the very right. You can only see the k numbers in the window. Each time the sliding window moves right by one position. Return the max sliding window.
+
+Example:
+
+Input: nums = [1,3,-1,-3,5,3,6,7], and k = 3
+Output: [3,3,5,5,6,7] 
+Explanation: 
+
+Window position                Max
+---------------               -----
+[1  3  -1] -3  5  3  6  7       3
+ 1 [3  -1  -3] 5  3  6  7       3
+ 1  3 [-1  -3  5] 3  6  7       5
+ 1  3  -1 [-3  5  3] 6  7       5
+ 1  3  -1  -3 [5  3  6] 7       6
+ 1  3  -1  -3  5 [3  6  7]      7
+Note: 
+You may assume k is always valid, 1 ≤ k ≤ input array's size for non-empty array.
+
+Follow up:
+Could you solve it in linear time?
+
+# 方法1：优先级队列，O(n*k)。
+public class Solution {
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        int len = nums.length;
+        int[] result = new int[len - k + 1];
+        if(nums.length == 0) return new int[0];
+        Queue<Integer> queue = new PriorityQueue<Integer>(new Comparator<Integer>(){
+            @Override
+            public int compare(Integer i1, Integer i2){
+                return Integer.compare(i2, i1);
+            }
+        });
+
+        for(int i = 0; i < k; i ++){
+            queue.add(nums[i]);
+        }
+        result[0] = queue.peek();
+        for(int i = k; i < len; i ++){
+            queue.remove(nums[i - k]);
+            queue.add(nums[i]);
+            result[i - k + 1] = queue.peek();
+        }
+
+        return result;
+    }
+}
+
+# 方法2：https://leetcode.com/problems/sliding-window-maximum/discuss/65881/O(n)-solution-in-Java-with-two-simple-pass-in-the-array。
+# 以w为间隔划分数组，max_left保存这从左到右在每一个间隔内的累积最大值（即间隔内截至到当前位置的最大值）,
+# max_right保存这从右到左在每一个间隔内的累积最大值。
+# 这样，一个滑动窗口(i,i+w-1)内的最大值可以以间隔点p为界分为两个部分：
+# 间隔点左侧的部分，该部分的最大值保存在了max_right[i]中，而间隔点右侧的部分的最大值保存在了max_left[i+w-1]中，取两值中较大的即是窗口中的最大值。
+
+ public class Solution {
+    public int[] maxSlidingWindow(int[] in, int w) {
+        final int[] max_left = new int[in.length];
+        final int[] max_right = new int[in.length];
+        if(in.length == 0) return new int[0];
+        max_left[0] = in[0];
+        max_right[in.length - 1] = in[in.length - 1];
+
+        for (int i = 1; i < in.length; i++) {
+            max_left[i] = (i % w == 0) ? in[i] : Math.max(max_left[i - 1], in[i]);
+
+            final int j = in.length - i - 1;
+            max_right[j] = ((j +1)% w == 0) ? in[j] : Math.max(max_right[j + 1], in[j]);
+        }
+        final int[] sliding_max = new int[in.length - w + 1];
+        for (int i = 0, j = 0; i + w <= in.length; i++) {
+            sliding_max[j++] = Math.max(max_right[i], max_left[i + w - 1]);
+        }
+
+        return sliding_max;
+    }
+}
+
+# 方法3：monotonic queue。使用双向队列保存元素。
+# 当访问到某一个位置时，我们要保持以该位置为右边界的窗口之外的元素不含在队列中，
+# 且队列中元素是递减的，同时那些不可能成为最大值的元素也被移出队列。
+# 例如 ...1,2,3...，访问到2时，前面的1已经不可能成为后面窗口中的最大值，因此将它从队列中移除，
+# 这样队列中2之前的元素只可能是比2大的，保持了单调递减。
+# 每个元素只入队和出队一次，复杂度O(n)
+
+public class Solution {
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        int n = nums.length;
+        if (n == 0) {
+            return nums;
+        }
+        int[] result = new int[n - k + 1];
+        LinkedList<Integer> dq = new LinkedList<>();
+        for (int i = 0; i < n; i++) {
+            if (!dq.isEmpty() && dq.peek() < i - k + 1) { // 移除掉超出了窗口范围的元素，这里不需要while循环
+                dq.poll();
+            }
+            while (!dq.isEmpty() && nums[i] >= nums[dq.peekLast()]) { // 从队列尾部开始（因为队列是递减的）删除。
+                dq.pollLast();
+            }
+            dq.offer(i);
+            if (i - k + 1 >= 0) {
+                result[i - k + 1] = nums[dq.peek()]; // 队列头部保存的是窗口内的最大值（因为队列是递减的）。
+            }
+        }
+        return result;
+    }
+}
+
+
+
