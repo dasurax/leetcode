@@ -1,0 +1,56 @@
+https://leetcode.com/problems/invert-binary-tree/description/
+
+Invert a binary tree.
+
+Example:
+
+Input:
+
+     4
+   /   \
+  2     7
+ / \   / \
+1   3 6   9
+Output:
+
+     4
+   /   \
+  7     2
+ / \   / \
+9   6 3   1
+
+# 方法一：递归。
+
+class Solution {
+    public TreeNode invertTree(TreeNode root) {
+        if(root == null)
+            return null;
+        TreeNode tmp;
+        tmp = invertTree(root.right);
+        root.right = invertTree(root.left);
+        root.left = tmp;
+        return root;
+    }
+}
+
+# 方法二：迭代。
+
+class Solution {
+    public TreeNode invertTree(TreeNode root) {
+        if(root == null)
+            return null;
+        LinkedList<TreeNode> stack = new LinkedList<>();
+        stack.push(root);
+        while(!stack.isEmpty()) {
+            TreeNode cur = stack.pop(), tmp;
+            if(cur.left != null)
+                stack.push(cur.left);
+            if(cur.right != null)
+                stack.push(cur.right);
+            tmp = cur.right;
+            cur.right = cur.left;
+            cur.left = tmp;
+        }
+        return root;
+    }
+}
