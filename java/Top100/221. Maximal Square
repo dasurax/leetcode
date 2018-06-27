@@ -1,0 +1,42 @@
+、https://leetcode.com/problems/maximal-square/description/
+
+Given a 2D binary matrix filled with 0's and 1's, find the largest square containing only 1's and return its area.
+
+Example:
+
+Input: 
+
+1 0 1 0 0
+1 0 1 1 1
+1 1 1 1 1
+1 0 0 1 0
+
+Output: 4
+
+# 方法1：DP。当某一点为1时，以这个点为右下角的正方形的大小应该为：
+# 1 + min(以该点左边点为右下角的正方形大小，以该点上边点为右下角的正方形大小，以该点左上边点为右下角的正方形大小)。
+# 例如若一个点的左、上、左上三个点都是大小为2的正方形的左下角，那么加上这个点后，可以构成边长为3的正方形。
+# 当前一轮迭代中的更新前dp值既是下轮中左上的值。
+
+class Solution {
+    public int maximalSquare(char[][] matrix) {
+        int row = matrix.length, col, leftUp = 0, max = 0;
+        if(row == 0) return 0;
+        col = matrix[0].length;
+        int dp[] = new int[col];
+        for(int i = 0; i < row; i++) {
+            for(int j = 0; j < col; j++) {
+                if(i == 0 || j == 0 || matrix[i][j] == '0') {
+                    leftUp = dp[j];
+                    dp[j] = matrix[i][j] - '0';
+                } else {
+                    int v = Math.min(Math.min(leftUp, dp[j]), dp[j - 1]);
+                    leftUp = dp[j];
+                    dp[j] = 1 + v;
+                }    
+                max = Math.max(max, dp[j]);
+            }
+        }
+        return max * max;
+    }
+}
