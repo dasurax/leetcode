@@ -1,0 +1,190 @@
+https://leetcode.com/problems/serialize-and-deserialize-binary-tree/description/
+
+Serialization is the process of converting a data structure or object into a sequence of bits 
+so that it can be stored in a file or memory buffer, or transmitted across a network connection link 
+to be reconstructed later in the same or another computer environment.
+
+Design an algorithm to serialize and deserialize a binary tree. 
+There is no restriction on how your serialization/deserialization algorithm should work. 
+You just need to ensure that a binary tree can be serialized to a string 
+and this string can be deserialized to the original tree structure.
+
+Example: 
+
+You may serialize the following tree:
+
+    1
+   / \
+  2   3
+     / \
+    4   5
+
+as "[1,2,3,null,null,4,5]"
+Clarification: The above format is the same as how LeetCode serializes a binary tree. You do not necessarily need to follow this format, so please be creative and come up with different approaches yourself.
+
+Note: Do not use class member/global/static variables to store states. Your serialize and deserialize algorithms should be stateless.
+
+# 方法一：前序遍历。当进行deserialize时，首先将所有的节点加入到队列中，然后同样按照前序遍历的顺序，先从队首弹出一个元素作为根节点，
+# 然后生成左子树，然后再生成右子树。
+
+public class Codec {
+    private static final String spliter = ",";
+    private static final String NN = "X";
+
+    // Encodes a tree to a single string.
+    public String serialize(TreeNode root) {
+        StringBuilder sb = new StringBuilder();
+        buildString(root, sb);
+        return sb.toString();
+    }
+
+    private void buildString(TreeNode node, StringBuilder sb) {
+        if (node == null) {
+            sb.append(NN).append(spliter);
+        } else {
+            sb.append(node.val).append(spliter);
+            buildString(node.left, sb);
+            buildString(node.right,sb);
+        }
+    }
+    // Decodes your encoded data to tree.
+    public TreeNode deserialize(String data) {
+        Deque<String> nodes = new LinkedList<>();
+        nodes.addAll(Arrays.asList(data.split(spliter)));
+        return buildTree(nodes);
+    }
+    
+    private TreeNode buildTree(Deque<String> nodes) {
+        String val = nodes.remove();
+        if (val.equals(NN)) return null;
+        else {
+            TreeNode node = new TreeNode(Integer.valueOf(val));
+            node.left = buildTree(nodes);
+            node.right = buildTree(nodes);
+            return node;
+        }
+    }
+}
+
+# 方法二：bfs。序列化时，先将父节点序列化，然后序列化左右子节点，若左右子节点不为空，则进入队列等待序列化。
+# 当解序列化时，先将父节点还原，然后还原左右子节点，若左右子节点不为空，则进入队列等待还原。
+# 可以看到，序列化时的顺序与解序列化时的顺序相同。
+
+public class Codec {
+    public String serialize(TreeNode root) {
+        if (root == null) return "";
+        Queue<TreeNode> q = new LinkedList<>();
+        StringBuilder res = new StringBuilder();
+        q.add(root);
+        while (!q.isEmpty()) {
+            TreeNode node = q.poll();
+            if (node == null) {
+                res.append("n ");
+                continue;
+            }
+            res.append(node.val + " ");
+            q.add(node.left);
+            q.add(node.right);
+        }
+        return res.toString();
+    }
+
+    public TreeNode deserialize(String data) {
+        if (data == "") return null;
+        Queue<TreeNode> q = new LinkedList<>();
+        String[] values = data.split(" ");
+        TreeNode root = new TreeNode(Integer.parseInt(values[0]));
+        q.add(root);
+        for (int i = 1; i < values.length; i++) {
+            TreeNode parent = q.poll();
+            if (!values[i].equals("n")) {
+                TreeNode left = new TreeNode(Integer.parseInt(values[i]));
+                parent.left = left;
+                q.add(left);
+            }
+            if (!values[++i].equals("n")) {
+                TreeNode right = new TreeNode(Integer.parseInt(values[i]));
+                parent.right = right;
+                q.add(right);
+            }
+        }
+        return root;
+    }
+}
+
+# 方法三：模仿leetcode的序列化过程，相比于上面的方法，该方法不会将多余的null进行序列化。
+# 使用层序遍历,因为下一层的序列化结果只和上一层有哪些节点有关，而与上一层节点的位置无关。
+# 例如[1,2,3,null,4,null,5,6,7,8]和[1,2,3,4,null,5,null,6,7,8]，第一棵树中第三层的节点4和5都在第二层节点的右子树上，
+# 而第二棵树中第三层的节点4和5都在第二层节点的左子树上，但第四层序列化的结果均为678，
+# 因为我们只需知道6和7是4的子节点，8是5的子节点即可，在序列化第四层时无需考虑第三次4和5的位置，
+# 即只需知道第四层序列化的前两个值对应第三层的第一个节点，第三四个值对应第三次的第二个节点，依此类推，
+# 因此每一轮迭代仅处理一层的节点，对这一层的子节点进行序列化，然后再将所以的子节点入队。
+# ns用来保存null节点，只有当遇到该层中的非null节点时，ns才会被附加到结果中，避免出现多余的null。
+# 这种序列化方法会使得除了最后一层之外，其他层的序列化结果中一定包含偶数个元素，因此解序列化时两两一组。
+
+public class Codec {
+
+    // Encodes a tree to a single string.
+    public String serialize(TreeNode root) {
+        if(root == null) return "";
+        Deque<TreeNode> queue = new LinkedList<>();
+        StringBuilder sb = new StringBuilder();
+        queue.add(root);
+        StringBuilder tmp = new StringBuilder("" + root.val), ns = new StringBuilder();
+        while(!queue.isEmpty()) {
+            sb.append(tmp);
+            tmp = new StringBuilder();
+            int n = queue.size();
+            for(int i = 0; i < n; i++) {
+                TreeNode cur = queue.remove();
+                if(cur.left == null)
+                    ns.append(",null");
+                else {
+                    queue.add(cur.left);
+                    tmp.append(ns).append(",").append(cur.left.val);
+                    ns = new StringBuilder();
+                }
+                if(cur.right == null)
+                    ns.append(",null");
+                else {
+                    queue.add(cur.right);
+                    tmp.append(ns).append(",").append(cur.right.val);
+                    ns = new StringBuilder();
+                }
+            }
+        }
+        // System.out.println(sb.toString());
+        return sb.toString();
+    }
+
+    // Decodes your encoded data to tree.
+    public TreeNode deserialize(String data) {
+        if(data.isEmpty()) return null;
+        String nodes[] = data.split(",");
+        TreeNode root = new TreeNode(Integer.parseInt(nodes[0]));
+        Deque<TreeNode> queue = new LinkedList<>();
+        queue.add(root);
+        int i = 1, l = nodes.length;
+        while(!queue.isEmpty() && i < l) {
+            TreeNode cur = queue.remove();
+            if(i < l) {
+                if(!nodes[i].equals("null")) {
+                    TreeNode left = new TreeNode(Integer.parseInt(nodes[i]));
+                    cur.left = left;
+                    queue.add(left);
+                }
+            }
+            i++;
+            if(i < l) {
+                if(!nodes[i].equals("null")) {
+                    TreeNode right = new TreeNode(Integer.parseInt(nodes[i]));
+                    cur.right = right;
+                    queue.add(right);
+                }
+            }
+            i++;
+        }
+        return root;
+    }
+}
+
