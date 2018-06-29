@@ -1,0 +1,109 @@
+# https://leetcode.com/problems/perfect-squares/description/
+
+Given a positive integer n, find the least number of perfect square numbers (for example, 1, 4, 9, 16, ...) which sum to n.
+
+Example 1:
+
+Input: n = 12
+Output: 3 
+Explanation: 12 = 4 + 4 + 4.
+Example 2:
+
+Input: n = 13
+Output: 2
+Explanation: 13 = 4 + 9.
+
+# 方法一：DP。dp[n]的结果可以由1+dp[n-1],1+dp[n-4],1+dp[n-9]...中的最小值得到。
+
+class Solution {
+    public int numSquares(int n) {
+        int dp[] = new int[n + 1], s = 1, tmpMin, max = 1;
+        while(max * max <= n) {
+            dp[max * max] = 1;
+            max++;
+        }
+        if((max - 1) * (max - 1) == n)
+            return 1;
+        for(int i = 1; i <= n; i++) {
+            if(dp[i] > 0) continue;
+            tmpMin = Integer.MAX_VALUE;
+            s = 1;
+            while(s * s <= i) {
+                tmpMin = Math.min(dp[i - s * s] + 1, tmpMin);
+                s++;
+            }
+            dp[i] = tmpMin;
+        }
+        return dp[n];
+    }
+}
+
+# 方法二：static DP。将DP数组设置为静态的，这样若前一个测试实例的n为100，下一个测试实例的n为50，
+# 因为在计算n为100时已经计算过n=50时的结果，可以直得到n=50的结果。
+# 算法上和DP完全一样，只不过利用OJ系统来加速。
+
+class Solution {
+    static List<Integer> result = new ArrayList<>();
+    public int numSquares(int n) {
+        if (result.size() == 0) {
+            result.add(0);
+        }
+        while (result.size() <= n) {
+            int m = result.size();
+            int tempMin = Integer.MAX_VALUE;
+            for (int j = 1; j * j <= m; j++) {
+                tempMin = Math.min(tempMin, result.get(m - j * j) + 1);
+            }
+            result.add(tempMin);
+        }
+        return result.get(n);
+    }
+}
+
+# 方法四：数学方法（待理解）。
+
+class Solution 
+{  
+private:  
+    int is_square(int n)
+    {  
+        int sqrt_n = (int)(sqrt(n));  
+        return (sqrt_n*sqrt_n == n);  
+    }
+    
+public:
+    // Based on Lagrange's Four Square theorem, there 
+    // are only 4 possible results: 1, 2, 3, 4.
+    int numSquares(int n) 
+    {  
+        // If n is a perfect square, return 1.
+        if(is_square(n)) 
+        {
+            return 1;  
+        }
+        
+        // The result is 4 if and only if n can be written in the 
+        // form of 4^k*(8*m + 7). Please refer to 
+        // Legendre's three-square theorem.
+        while ((n & 3) == 0) // n%4 == 0  
+        {
+            n >>= 2;  
+        }
+        if ((n & 7) == 7) // n%8 == 7
+        {
+            return 4;
+        }
+        
+        // Check whether 2 is the result.
+        int sqrt_n = (int)(sqrt(n)); 
+        for(int i = 1; i <= sqrt_n; i++)
+        {  
+            if (is_square(n - i*i)) 
+            {
+                return 2;  
+            }
+        }  
+        
+        return 3;  
+    }  
+}; 
