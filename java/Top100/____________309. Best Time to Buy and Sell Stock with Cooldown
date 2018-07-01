@@ -1,0 +1,64 @@
+# https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/description/
+
+Say you have an array for which the ith element is the price of a given stock on day i.
+
+Design an algorithm to find the maximum profit. You may complete as many transactions as you like (ie, buy one and sell one share of the stock multiple times) with the following restrictions:
+
+You may not engage in multiple transactions at the same time (ie, you must sell the stock before you buy again).
+After you sell your stock, you cannot buy stock on next day. (ie, cooldown 1 day)
+Example:
+
+Input: [1,2,3,0,2]
+Output: 3 
+Explanation: transactions = [buy, sell, cooldown, buy, sell]
+
+# 方法一：DP。买操作意味着从总的profit中减去买入那天的价格，卖操作意味着从总的profit中加上卖出那天的价格。
+# sell[i]表示第i天卖出时的最大profit，cooldown[i]表示第i天既不买也不卖的时的最大profit，
+# buy[i]表示第i天买入（或者一直持有上一次买入时的股票，即从上次买入后一直到第i天都没有sell过）。
+# 这样，sell[i] = buy[i-1] + prices[i]，
+# buy[i] = max(cooldown[i-1] - prices[i], buy[i-1])，即既可以在未持有的时候买入，又可以在持有的时候继续保有。
+# cooldown[i] = max(cooldown[i-1], sell[i-1])。
+# i=1时可以直接计算出来作为base，再进行DP的过程。
+
+class Solution {
+    public int maxProfit(int[] prices) {
+        int l = prices.length;
+        if(l < 2) return 0;
+        int s = prices[1] - prices[0], b = Math.max(-prices[0], -prices[1]), c = 0, tmp;
+        for(int i = 2; i < l; i++) {
+            tmp = s;
+            s = b + prices[i];
+            b = Math.max(c - prices[i], b);
+            c = Math.max(c, tmp);
+        }
+        return Math.max(c, s);
+    }
+}
+
+# 另一种更直观的想法，不考虑cooldown。
+# https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/discuss/75931/Easiest-JAVA-solution-with-explanations
+# buy[i]: To make a decision whether to buy at i, we either take a rest, by just using the old decision at i - 1, 
+# or sell at/before i - 2, then buy at i, We cannot sell at i - 1, then buy at i, because of cooldown.
+# sell[i]: To make a decision whether to sell at i, we either take a rest, 
+# by just using the old decision at i - 1, or buy at/before i - 1, then sell at i.
+# Till index i, the buy / sell action must happen and must be the last action(rest不算action). 
+# It may not happen at index i. It may happen at i - 1, i - 2, ... 0.
+# So we get the following formula:
+# buy[i] = Math.max(buy[i - 1], sell[i - 2] - prices[i]);   
+# sell[i] = Math.max(sell[i - 1], buy[i - 1] + prices[i]);
+# Let b1, b0 represent buy[i - 1], buy[i]
+# Let s2, s1, s0 represent sell[i - 2], sell[i - 1], sell[i]
+
+public int maxProfit(int[] prices) {
+    if(prices == null || prices.length <= 1) return 0;
+  
+    int b0 = -prices[0], b1 = b0;
+    int s0 = 0, s1 = 0, s2 = 0;
+ 
+    for(int i = 1; i < prices.length; i++) {
+    	b0 = Math.max(b1, s2 - prices[i]);
+    	s0 = Math.max(s1, b1 + prices[i]);
+    	b1 = b0; s2 = s1; s1 = s0; 
+    }
+    return s0;
+}
