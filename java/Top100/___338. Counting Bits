@@ -1,0 +1,52 @@
+https://leetcode.com/problems/counting-bits/description/
+
+Given a non negative integer number num. For every numbers i in the range 0 ≤ i ≤ num calculate the number of 1's in their binary representation and return them as an array.
+
+Example:
+For num = 5 you should return [0,1,1,2,1,2].
+
+Follow up:
+
+It is very easy to come up with a solution with run time O(n*sizeof(integer)). But can you do it in linear time O(n) /possibly in a single pass?
+Space complexity should be O(n).
+Can you do it like a boss? Do it without using any builtin function like __builtin_popcount in c++ or in any other language.
+
+# 方法一：一个数可以通过另一个数左移（相当于乘2，这个过程中1的个数不会改变），再加上0或1（1的个数加1）来得到。
+# 例如17(10001)就相当于是将8(1000)进行向左移位操作（得到16, 10000），然后再在末位加1得到。
+# 因此一个数中的1的个数，就是它除以2所得的那个数中包含的1的个数，再加上余数。
+
+class Solution {
+    public int[] countBits(int num) {
+        int count[] = new int[num + 1];
+        for(int i = 1; i <= num; i++) {
+            int q = i / 2, r = i % 2;
+            count[i] = count[q] + r;
+        }
+        return count;
+    }
+}
+
+# 使用位操作的写法：
+
+public int[] countBits(int num) {
+    int[] f = new int[num + 1];
+    for (int i=1; i<=num; i++) f[i] = f[i >> 1] + (i & 1);
+    return f;
+}
+
+# 方法二：4-7与0-3所拥有低位是相同的，只不过4-7比0-3在高位多了个一。同理8-15与0-7，16-31与0-15，等等，都有类似的关系。
+# 因此，每遇到一个平方数时，就开启一个新的循环，新的循环中的数都要比旧的循环中的1bit多1。
+
+public int[] countBits(int num) {
+    int[] ret = new int[num+1];
+    ret[0] = 0;
+    int pow = 1;
+    for(int i = 1, t = 0; i <= num; i++, t++) {
+        if(i == pow) {
+            pow *= 2;
+            t = 0;
+        }
+        ret[i] = ret[t] + 1;
+    }
+    return ret;
+}
