@@ -1,0 +1,77 @@
+https://leetcode.com/problems/house-robber-iii/description/
+
+The thief has found himself a new place for his thievery again. There is only one entrance to this area, called the "root." Besides the root, each house has one and only one parent house. After a tour, the smart thief realized that "all houses in this place forms a binary tree". It will automatically contact the police if two directly-linked houses were broken into on the same night.
+
+Determine the maximum amount of money the thief can rob tonight without alerting the police.
+
+Example 1:
+     3
+    / \
+   2   3
+    \   \ 
+     3   1
+Maximum amount of money the thief can rob = 3 + 3 + 1 = 7.
+Example 2:
+     3
+    / \
+   4   5
+  / \   \ 
+ 1   3   1
+Maximum amount of money the thief can rob = 4 + 5 = 9.
+
+# DP问题："optimal substructure" + "overlapping of subproblems"。
+# 方法一：使用HashMap来避免重复的计算。若rob当前节点，那就只能rob子节点的子节点（左子节点和右子节点的左右子节点，val + root.val）。
+# 不rob当前节点，则可以rob子节点（robSub(root.left, map) + robSub(root.right, map)）。
+# 取两者之间的最大值即为当前子问题的最优值。
+# 这种写法在访问子节点无需考虑父节点是否访问过，也无需记录当前节点分别在访问时与未访问时的的最优值，
+# 而是只将当前节点看作一个新的root，把从该节点开始的求解过程看作子问题，最优值会自动选择访问或是不访问当前子节点。
+
+class Solution {
+    public int rob(TreeNode root) {
+        return robSub(root, new HashMap<>());
+    }
+
+    private int robSub(TreeNode root, Map<TreeNode, Integer> map) {
+        if (root == null) return 0;
+        if (map.containsKey(root)) return map.get(root);
+
+        int val = 0;
+
+        if (root.left != null) {
+            val += robSub(root.left.left, map) + robSub(root.left.right, map);
+        }
+
+        if (root.right != null) {
+            val += robSub(root.right.left, map) + robSub(root.right.right, map);
+        }
+
+        val = Math.max(val + root.val, robSub(root.left, map) + robSub(root.right, map));
+        map.put(root, val);
+
+        return val;
+    }
+}
+
+# 方法二：上面方法需要O(n)的space。每次为了避免处理相同的子问题，我们才使用HashMap。
+# 之所以会这样，是因为root的时候，可能会选择root.left或是root.left.left。让我们走到cur=root.left时，cur.left即是root.left.left,
+# 因此就会出现重复的路径。
+# 如果我们从叶节点开始，让每个节点都返回两种情况下（是否rob当前节点）的结果，
+# 然后父节点只依赖于子节点结果，计算出当前节点时rob与不rob的结果并同时返回给上一层，这样就无需保存额外的结果。
+
+class Solution {
+    public int rob(TreeNode root) {
+        int re[] = robSub(root);
+        return Math.max(re[0], re[1]);
+    }
+    
+    public int[] robSub(TreeNode root) {
+        if(root == null)
+            return new int[2];
+        int left[], right[], re[] = new int[2];
+        left = robSub(root.left);  // 下标0表示当前节点not rob, 下标1表示rob
+        right = robSub(root.right);
+        re[0] = Math.max(left[0], left[1]) + Math.max(right[0], right[1]); // 下标0表示当前节点not rob, 下标1表示rob
+        re[1] = root.val + left[0] + right[0];
+        return re;
+    }
+}
