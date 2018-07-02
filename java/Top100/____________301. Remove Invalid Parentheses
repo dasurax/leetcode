@@ -15,7 +15,9 @@ Example 3:
 Input: ")("
 Output: [""]
 
-# 方法一：bfs。
+# 方法一：bfs。每次将上一轮迭代中入队的字符串依次取出（这些字符串长度相等），然后依次将这些字符串中每一个字符单独删掉并检验删除后是否合法。
+# 一旦在某一轮中发现了一个合法的（reached==true），因为要求是Remove the minimum number，因此遍历完这轮所有的字符串后即可跳出循环，
+# 而无需考虑更短的字符串。
 
 public class Solution {
     public List<String> removeInvalidParentheses(String s) {
@@ -66,8 +68,76 @@ public class Solution {
     }
 }
 
+# 方法二：直观的DFS。所需移除的最小括号的数量是可以确定的，即所有不匹配的右括号的数量，加上多余的左括号的数量（count=left+right）。
+# 在每一层递归中，我们可以选择是否把当前位置的括号移去，移去的话将count-1，若count小于0说明已经移除了过多的括号，不满足条件，直接返回。
+# 注意使用 sb.setLength(len); 来进行回溯。因为要分别考虑是否使用当前括号的情况，如果没有这个回溯过程，
+# 那么当第一个dfs(s, i + 1, res, sb, count - 1)返回以后，第二个dfs(s, i + 1, res, sb.append(c), count)所使用的sb已经发生了变化。 
 
-# 方法三：DFS
+class Solution {
+    public List<String> removeInvalidParentheses(String s) {
+        int left = 0, right = 0, count = 0;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '(') {
+                left++;
+            } else if (s.charAt(i) == ')') {
+                if (left > 0)
+                    left--;
+                else
+                    right++;
+            }
+        }
+        // Find how many min. no. of changes are required
+        count = left + right;
+        Set<String> res = new HashSet<>();
+        dfs(s, 0, res, new StringBuilder(""), count);
+        return new ArrayList<String>(res);
+    }
+
+    boolean isValid(String s) {
+          int count = 0;
+          for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (c == '(') count++;
+            if (c == ')' && count-- == 0) return false;
+          }
+          return count == 0;
+    }
+
+    public void dfs(String s, int i, Set<String> res, StringBuilder sb, int count) {
+        if (count < 0) {
+            return;
+        }
+        if (i == s.length()) {
+            if (count == 0) {
+                if (isValid(sb.toString())) {
+                    res.add(sb.toString());
+                }
+            }        
+            return;
+        }
+        char c = s.charAt(i); 
+        int len = sb.length();
+        if (c == '(' || c == ')') {
+            dfs(s, i + 1, res, sb, count - 1);		    // not use ')''('
+            dfs(s, i + 1, res, sb.append(c), count);       // use 
+        } else {
+            dfs(s, i + 1, res, sb.append(c), count);	
+        }
+        sb.setLength(len);        
+    }
+}
+
+# 方法三：DFS。https://leetcode.com/problems/remove-invalid-parentheses/discuss/75027/Easy-Short-Concise-and-Fast-Java-DFS-3-ms-solution
+# 循环中的stack<0意味着出现了不匹配的“右括号”的情况，那么这时，为了使此时的前缀合法，我们可以删除这个前缀中的任意一个右括号。
+# 为了避免出现重复结果，例如“())”，删除第一个右括号与删除第二个没有区别，因此当出现连续的右括号时，只删除第一个。
+# 除此之外，还需要保存上次移除的括号的位置，等下一层进行移除时，从这个位置开始，而不考虑前面的部分。举例来说，(())())()),
+# 第一个不合法的右括号出现在第7个位置，这时可以删除第三个和第六个位置的右括号，得到(()())())，(())()())，
+# 此时不合法的位置出现在最后，若我们不保存上次移除的括号的位置，还是从头扫描右括号，
+# 那么删除(()())())中的第六个位置得到(()()())，删除(())()())的第三个位置也会得到(()()())，这实际上只是以不同的顺序删除两个右括号。
+# 因此我们需要保存上次移除的括号的位置。也就是说，我们要的是删除的右括号的组合（例如删除位置2和5，2和10，或5和10），
+# 而不是排列（如删除2和5，或5和2）.
+# 当循环结束时，我们可以保证所有的不匹配的右括号都被删除，只剩下多余的左括号。如果我们把此时的字符串进行反转，
+# 那么实际上只是右括号和左括号角色进行和互换，我们可以使用上述的处理过程，去移除那些不匹配的左括号。
 
 class Solution {
     public List<String> removeInvalidParentheses(String s) {
@@ -83,7 +153,6 @@ class Solution {
             if (stack >= 0) continue;
             for (int j = last_j; j <= i; ++j)
                 if (s.charAt(j) == par[1] && (j == last_j || s.charAt(j - 1) != par[1])) {
-                    System.out.println(s.substring(0, j) + s.substring(j + 1, s.length()));
                     remove(s.substring(0, j) + s.substring(j + 1, s.length()), ans, i, j, par);
                 }
             return;
