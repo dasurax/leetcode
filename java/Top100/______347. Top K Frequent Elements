@@ -1,0 +1,117 @@
+https://leetcode.com/problems/top-k-frequent-elements/description/
+
+Given a non-empty array of integers, return the k most frequent elements.
+
+For example,
+Given [1,1,1,2,2,3] and k = 2, return [1,2].
+
+Note: 
+You may assume k is always valid, 1 ≤ k ≤ number of unique elements.
+Your algorithm's time complexity must be better than O(n log n), where n is the array's size.
+
+# 方法一：O(nlogn)的解法，TreeMap和优先级队列。先统计一遍所有数字的频率，然后利用TM和PQ的特性找到前K个最大值。
+# 对于TreeMap，因为key值为唯一，因此可以让频率作为key，value则是所有该频率的数字组成的数组。
+
+# TreeMap:
+public class Solution {
+    public List<Integer> topKFrequent(int[] nums, int k) {
+        Map<Integer, Integer> map = new HashMap<>();
+        for(int n: nums){
+            map.put(n, map.getOrDefault(n,0)+1);
+        }
+        
+        TreeMap<Integer, List<Integer>> freqMap = new TreeMap<>();
+        for(int num : map.keySet()){
+           int freq = map.get(num);
+           if(!freqMap.containsKey(freq)){  // TreeMap将频率作为key，拥有该频率的所有数字的数组作为value。
+               freqMap.put(freq, new LinkedList<>());
+           }
+           freqMap.get(freq).add(num);
+        }
+        
+        List<Integer> res = new ArrayList<>();
+        while(res.size()<k){
+            Map.Entry<Integer, List<Integer>> entry = freqMap.pollLastEntry();
+            res.addAll(entry.getValue());
+        }
+        return res;
+    }
+}
+
+# PQ1: 大的值优先，先将所有键值对加入到队列，再从队列中取出前K大的。
+public class Solution {
+    public List<Integer> topKFrequent(int[] nums, int k) {
+        Map<Integer, Integer> map = new HashMap<>();
+        for(int n: nums){
+            map.put(n, map.getOrDefault(n,0)+1);
+        }
+           
+        PriorityQueue<Map.Entry<Integer, Integer>> maxHeap = 
+                         new PriorityQueue<>((a,b)->(b.getValue()-a.getValue()));
+        for(Map.Entry<Integer,Integer> entry: map.entrySet()){
+            maxHeap.add(entry);
+        }
+        
+        List<Integer> res = new ArrayList<>();
+        while(res.size()<k){
+            Map.Entry<Integer, Integer> entry = maxHeap.poll();
+            res.add(entry.getKey());
+        }
+        return res;
+    }
+}
+
+# PQ2:小的值优先，依次入队，当队列size大于k时，弹出最小的。因为最终出队的顺序是从小到大，需要进行翻转。
+class Solution {
+    public List<Integer> topKFrequent(int[] nums, int k) {
+        List<Integer> res = new ArrayList();
+        Map<Integer, Integer> map = new HashMap<>();
+        PriorityQueue<Integer> pq = new PriorityQueue<>(new Comparator() {
+            @Override 
+            public int compare(Object i1, Object i2) {
+                return map.get(i1) - map.get(i2);
+            }
+        });
+        for(int num: nums) {
+            map.put(num, map.getOrDefault(num, 0) + 1);
+        }
+        for(Integer key: map.keySet()) {
+            pq.add(key);
+            if(pq.size() > k) 
+                pq.poll();
+        }
+        while(!pq.isEmpty())
+            res.add(pq.poll());
+        Collections.reverse(res);
+        return res;
+    }
+}
+
+# 方法2：桶排序，O(n)。思路类似于上面的TreeMap，只不过是用空间来换取时间上的提升。
+
+public List<Integer> topKFrequent(int[] nums, int k) {
+
+	List<Integer>[] bucket = new List[nums.length + 1];
+	Map<Integer, Integer> frequencyMap = new HashMap<Integer, Integer>();
+
+	for (int n : nums) {
+		frequencyMap.put(n, frequencyMap.getOrDefault(n, 0) + 1);
+	}
+
+	for (int key : frequencyMap.keySet()) {
+		int frequency = frequencyMap.get(key);
+		if (bucket[frequency] == null) {
+			bucket[frequency] = new ArrayList<>();
+		}
+		bucket[frequency].add(key);
+	}
+
+	List<Integer> res = new ArrayList<>();
+
+	for (int pos = bucket.length - 1; pos >= 0 && res.size() < k; pos--) {
+		if (bucket[pos] != null) {
+			res.addAll(bucket[pos]);
+		}
+	}
+	return res;
+}
