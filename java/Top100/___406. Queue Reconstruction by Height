@@ -1,0 +1,68 @@
+https://leetcode.com/problems/queue-reconstruction-by-height/description/
+
+Suppose you have a random list of people standing in a queue. Each person is described by a pair of integers (h, k), where h is the height of the person and k is the number of people in front of this person who have a height greater than or equal to h. Write an algorithm to reconstruct the queue.
+
+Note:
+The number of people is less than 1,100.
+
+
+Example
+
+Input:
+[[7,0], [4,4], [7,1], [5,0], [6,1], [5,2]]
+
+Output:
+[[5,0], [7,0], [5,2], [6,1], [4,4], [7,1]]
+
+# 方法一：TreeMap加PQ。先按高度从高到低排序，将高度作为key存入TreeMap。每个高度对应的k按从小到大的顺序排序。
+# 取出(key, k)对之后，将这一对加入到当前列表中的位置k上。
+# 直观理解，最高的高度计算k值只考虑了该高度，而不用考虑比它低的高度，按k排列的话即可得到最高高度的people的前后顺序。
+# 对于第二高的高度，k值要考虑前两高的高度，实际上k值即是指在由前两高的高度的people组成的队列中，这个people所处的位置是k。
+# 依此类推。
+# 该解法可行的原因是，后面插入的高度对前面插入的高度的k值不会有影响，因此我们只需保证后面插入的高度处于正确的位置即可。
+# 而在同一高度下，后面插入的同样不会影响前面的k值。
+
+class Solution {
+    public int[][] reconstructQueue(int[][] people) {
+        TreeMap<Integer, PriorityQueue<Integer>> map = new TreeMap<>();
+        List<int[]> list = new LinkedList<>();
+        int[][] res = new int [people.length][2];
+        for(int[] p: people) {
+            if(!map.containsKey(p[0]))
+                map.put(p[0], new PriorityQueue<>());
+            map.get(p[0]).add(p[1]);
+        };
+        Map.Entry<Integer, PriorityQueue<Integer>> entry;
+        PriorityQueue<Integer> pq;
+        int k, key;
+        while((entry = map.pollLastEntry()) != null) {
+            key = entry.getKey();
+            pq = entry.getValue();
+            while(!pq.isEmpty()) {
+                k = pq.poll();
+                list.add(k, new int[]{key, k});
+            }
+        }
+        list.toArray(res);
+        return res;
+    }
+}
+
+# 方法二：上述TreeMap加PQ的过程实际上就是对people进行了排序，高度高的优先，同一高度下k小的优先。因此对people排序即可。
+
+class Solution {
+    public int[][] reconstructQueue(int[][] people) {
+        List<int[]> list = new LinkedList<>();
+        int[][] res = new int [people.length][2];
+        Arrays.sort(people, new Comparator<int[]>() {
+            @Override
+            public int compare(int[] o1, int[] o2) {
+                return o1[0] != o2[0] ? o2[0] - o1[0] : o1[1] - o2[1];
+            }
+        });
+        for(int[] p: people) {
+            list.add(p[1], p);
+        }
+        return list.toArray(new int[people.length][]);
+    }
+}
