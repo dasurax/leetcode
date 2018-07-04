@@ -1,0 +1,97 @@
+# https://leetcode.com/problems/partition-equal-subset-sum/description/
+
+Given a non-empty array containing only positive integers, find if the array can be partitioned into two subsets such that the sum of elements in both subsets is equal.
+
+Note:
+Each of the array element will not exceed 100.
+The array size will not exceed 200.
+Example 1:
+
+Input: [1, 5, 11, 5]
+
+Output: true
+
+Explanation: The array can be partitioned as [1, 5, 5] and [11].
+Example 2:
+
+Input: [1, 2, 3, 5]
+
+Output: false
+
+Explanation: The array cannot be partitioned into equal sum subsets.
+
+# 方法一：DP。该问题实际上要找到一些数的组合加起来能够等于所有数总和的一半。
+# 因此该问题可以看作是0-1背包问题的变种。dp[i][j]表示前i+1个数中是否有能构成j的组合。
+# 显然，若dp[i-1][j]=true，那么dp[i][j]一定为true（因为我们只需使用之前数字的组合构成j，而直接无视掉nums[i]）。这相当于不放入当前物品的情况。
+# 考虑放入当前物品的情况，如果加上nums[i]要构成j，那么前i个数中一定要有能够j-nums[i]的组合，也就是要dp[i-1][j-nums[i]]为true。
+
+public boolean canPartition(int[] nums) {
+    int sum = 0;    
+    for (int num : nums) 
+        sum += num;   
+    if ((sum & 1) == 1)
+        return false;
+    sum /= 2;
+    int n = nums.length;
+    boolean[][] dp = new boolean[n+1][sum+1];
+    dp[0][0] = true;
+    for (int i = 1; i < n+1; i++) 
+        dp[i][0] = true;
+    for (int j = 1; j < sum+1; j++) 
+        dp[0][j] = false;
+        
+    for (int i = 1; i < n+1; i++) {
+        for (int j = 1; j < sum+1; j++) {
+            dp[i][j] = dp[i-1][j];
+            if (j >= nums[i-1]) {
+                dp[i][j] = (dp[i][j] || dp[i-1][j-nums[i-1]]);
+            }
+        }
+    }
+    return dp[n][sum];
+}
+
+# 实际上只用一维数组保存上一轮的结果即可。但要注意，内存循环要从大遍历到小。
+# 因为从小到大遍历的话，小的位置会被更新，这样大的位置使用的就不再是上一轮的结果了。
+# 同时还可以使用Math.min(half, sum)来减少操作，因为若前i个数的和小于half，那么大于这个和j对于的dp[j]不可能为true。
+
+class Solution {
+    public boolean canPartition(int[] nums) {
+        int sum = 0, half, l = nums.length;
+        if(l == 1) return false;
+        for(int num: nums) {
+            sum += num;
+        }
+        if(sum % 2 == 1) return false;
+        half = sum >> 1;
+        boolean dp[] = new boolean[half + 1];
+        dp[0] = true;
+        sum = nums[0];
+        for(int i = 1; i < l; i++) {
+            sum += nums[i];
+            for(int j = Math.min(half, sum); j > 0; j--) {
+                dp[j] = dp[j] || (j >= nums[i] && dp[j-nums[i]]);
+            }
+        }
+        return dp[half];
+    }
+}
+
+# 方法二:bit操作。第i位置的二进制为1表示有组合能够加起来得到i。当取到一个数num，那么根据定义，
+# 若之前位置为i的二进制位为1，那么i+num位置的二进制为也为1。因此通过将原来的bit数组左移n位即可得到所有新的能够组成得到的数，
+# 然后再按位或上原来的bit数组即可。最后只需查看half位置上的值是否为1即可。
+
+class Solution {
+public:
+    bool canPartition(vector<int>& nums) {
+        const int MAX_NUM = 100;
+        const int MAX_ARRAY_SIZE = 200;
+        bitset<MAX_NUM * MAX_ARRAY_SIZE / 2 + 1> bits(1);
+        int sum = 0;
+        for (auto n : nums) {
+            sum += n;
+            bits |= bits << n;
+        }
+        return !(sum % 2) && bits[sum / 2];
+    }
+};
