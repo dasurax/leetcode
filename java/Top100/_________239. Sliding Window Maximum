@@ -1,4 +1,7 @@
-Given an array nums, there is a sliding window of size k which is moving from the very left of the array to the very right. You can only see the k numbers in the window. Each time the sliding window moves right by one position. Return the max sliding window.
+https://leetcode.com/problems/sliding-window-maximum/description/
+
+Given an array nums, there is a sliding window of size k which is moving from the very left of the array to the very right. 
+You can only see the k numbers in the window. Each time the sliding window moves right by one position. Return the max sliding window.
 
 Example:
 
@@ -20,7 +23,7 @@ You may assume k is always valid, 1 ≤ k ≤ input array's size for non-empty a
 Follow up:
 Could you solve it in linear time?
 
-# 方法1：优先级队列，O(n*k)。
+# 方法1：优先级队列（保持队列中只有窗口内的k个元素，且按从高到低的顺序排列）。PQ移除指定元素的复杂度为O(k)，因此复杂度O(n*k)。
 public class Solution {
     public int[] maxSlidingWindow(int[] nums, int k) {
         int len = nums.length;
