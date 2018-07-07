@@ -1,0 +1,88 @@
+https://leetcode.com/problems/burst-balloons/description/
+
+Given n balloons, indexed from 0 to n-1. Each balloon is painted with a number on it represented by array nums. You are asked to burst all the balloons. If the you burst balloon i you will get nums[left] * nums[i] * nums[right] coins. Here left and right are adjacent indices of i. After the burst, the left and right then becomes adjacent.
+
+Find the maximum coins you can collect by bursting the balloons wisely.
+
+Note:
+
+You may imagine nums[-1] = nums[n] = 1. They are not real therefore you can not burst them.
+0 ≤ n ≤ 500, 0 ≤ nums[i] ≤ 100
+Example:
+
+Input: [3,1,5,8]
+Output: 167 
+Explanation: nums = [3,1,5,8] --> [3,5,8] -->   [3,8]   -->  [8]  --> []
+             coins =  3*1*5      +  3*5*8    +  1*3*8      + 1*8*1   = 167
+
+# 思路：考虑burst某一个范围内[left, right]内的所有气球（不包括left和right）。考虑最后一个burst的位置i，
+# 此时从left到i和从i到right之间气球都已经被burst掉，因此burst最后一个位置的收益是确定的，即nums[i] * nums[left] + nums[right]。
+# 因此burst掉[left, right]内气球所能获得最大硬币数，就是对于所有可能的最后一个burst掉的位置i，
+# burst掉该位置所得的硬币数，加上burst掉[left, i]所得的最大硬币数再加上burst掉[i, right]所得的最大硬币数以后，总数最大的那个。
+# 因此我们可以先求出小范围内的最优值，然后通过小范围内的最优值求出大范围内的最优值。
+# DP问题，复杂度O(n^3)。
+# 方法一：迭代。这种写法的dp[i][j]表示busrt掉[i,j]内气球的最大值（包括i和j）。
+
+class Solution {
+    public int maxCoins(int[] nums) {
+        int l = nums.length;
+        if(l == 0) return 0;
+        int dp[][] = new int[l][l];
+        for(int len = 0; len < l; len++) {
+            for(int i = 0; i < l - len; i++) {
+                for(int j = i; j <= i + len; j++) {
+                    int tmp = (i == 0 ? 1 : nums[i - 1]) * nums[j] * (i + len == l - 1 ? 1 : nums[i + len + 1]);
+                    tmp += j == i ? 0 : dp[i][j - 1];
+                    tmp += j == i + len ? 0 : dp[j + 1][i + len];
+                    dp[i][i + len] = Math.max(dp[i][i + len], tmp);
+                }
+            }
+        }
+        return dp[0][l - 1];
+    }
+}
+
+# 更直观的写法。因为0不会让我们获得收益，因此可以先将所有为0的气球删除掉。此外，分别在最左侧和最右侧加上两个虚拟的气球，值为1。
+# 这种写法的dp[left][right]表示busrt掉[left,right]内气球的最大值（但是包括left和right）。这种写法不用判断边界条件。
+
+public int maxCoins(int[] iNums) {
+    int[] nums = new int[iNums.length + 2];
+    int n = 1;
+    for (int x : iNums) if (x > 0) nums[n++] = x;
+    nums[0] = nums[n++] = 1;
+    
+    int[][] dp = new int[n][n];
+    for (int k = 2; k < n; ++k)
+        for (int left = 0; left < n - k; ++left) {
+            int right = left + k;
+            for (int i = left + 1; i < right; ++i)
+                dp[left][right] = Math.max(dp[left][right], 
+                nums[left] * nums[i] * nums[right] + dp[left][i] + dp[i][right]);
+        }
+
+    return dp[0][n - 1];
+}
+
+# 方法二：递归，D&C(分治) with Memoization。
+
+public int maxCoins(int[] iNums) {
+    int[] nums = new int[iNums.length + 2];
+    int n = 1;
+    for (int x : iNums) if (x > 0) nums[n++] = x;
+    nums[0] = nums[n++] = 1;
+
+
+    int[][] memo = new int[n][n];
+    return burst(memo, nums, 0, n - 1);
+}
+
+public int burst(int[][] memo, int[] nums, int left, int right) {
+    if (left + 1 == right) return 0;
+    if (memo[left][right] > 0) return memo[left][right];
+    int ans = 0;
+    for (int i = left + 1; i < right; ++i)
+        ans = Math.max(ans, nums[left] * nums[i] * nums[right] 
+        + burst(memo, nums, left, i) + burst(memo, nums, i, right));
+    memo[left][right] = ans;
+    return ans;
+}
