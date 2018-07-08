@@ -17,7 +17,7 @@ The input string length won't exceed 1000.
 
 # 方法一：长度为3的回文串可以通过检查长度为1的回文串所在的位置的左侧和右侧字符是否相等来获得。
 # 长度为4的回文串可以通过检查长度为2的回文串所在的位置的左侧和右侧字符是否相等来获得。依次类推。
-# 通过两个
+# 通过两个数组来保存偶数长度和奇数长度的回文串的起始位置。
 
 class Solution {
     public int countSubstrings(String s) {
@@ -55,3 +55,26 @@ class Solution {
         return sum;
     }
 }
+
+# 方法二：上面方法是对不同的长度，考虑不同位置上是否可以构成回文。自然也可以先考虑位置，然后判断以该位置为中心，不同长度的字符串是否能构成回文。
+
+public class Solution {
+    int count = 0;
+    
+    public int countSubstrings(String s) {
+        if (s == null || s.length() == 0) return 0;
+        for (int i = 0; i < s.length(); i++) { // i is the mid point
+            extendPalindrome(s, i, i); // odd length;
+            extendPalindrome(s, i, i + 1); // even length
+        }
+        return count;
+    }
+    
+    private void extendPalindrome(String s, int left, int right) {
+        while (left >=0 && right < s.length() && s.charAt(left) == s.charAt(right)) {
+            count++; left--; right++;
+        }
+    }
+}
+
+# 方法三：马拉车算法。O(n)。https://blog.csdn.net/mxw976235955/article/details/39826497
