@@ -1,0 +1,116 @@
+https://leetcode.com/problems/binary-tree-zigzag-level-order-traversal/description/
+
+Given a binary tree, return the zigzag level order traversal of its nodes' values. (ie, from left to right, then right to left for the next level and alternate between).
+
+For example:
+Given binary tree [3,9,20,null,null,15,7],
+    3
+   / \
+  9  20
+    /  \
+   15   7
+return its zigzag level order traversal as:
+[
+  [3],
+  [20,9],
+  [15,7]
+]
+
+# 方法一：deuqe。从左往右走时，取队列头部的节点，并依次将左节点和右节点加入到队列尾部。
+# 从右往左走时，取队列尾部的节点，并依次将右节点和左节点加入到队列头部（与从左往右时相反）。
+# 每次处理一层。
+
+class Solution {
+    public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
+        LinkedList<TreeNode> deque = new LinkedList<>();
+        List<List<Integer>> res = new ArrayList<>();
+        List<Integer> list;
+        TreeNode tmp;
+        int size = 1, dir = 0;
+        if(root == null) return res;
+        deque.addFirst(root);
+        while(!deque.isEmpty()) {
+            list = new ArrayList();
+            for(int i = 0; i < size; i++) {
+                if(dir == 0) { // 从左往右走
+                    tmp = deque.pollFirst();
+                    if(tmp.left != null)
+                        deque.addLast(tmp.left);
+                    if(tmp.right != null)
+                        deque.addLast(tmp.right);
+                } else {
+                    tmp = deque.pollLast();
+                    if(tmp.right != null)
+                        deque.addFirst(tmp.right);
+                    if(tmp.left != null)
+                        deque.addFirst(tmp.left);
+                }
+                list.add(tmp.val);
+            }
+            res.add(list);
+            dir = 1 - dir;
+            size = deque.size();
+        }
+        return res;
+    }
+}
+
+# 方法二：使用队列即可，每一层的节点都是从左到右入队。当往右走时，队列中的节点依次出队并加入到该层的结果中。
+# 但往左走时，队列中的节点每次都要插入到该层结果最开始的位置，这样该层后面的节点会出现在该层结果的前面位置，就相当于是从右往左了。
+
+public class Solution {
+    public List<List> zigzagLevelOrder(TreeNode root) {
+        List<List> res = new ArrayList<>();
+        if(root == null) return res;
+        Queue<TreeNode> q = new LinkedList<>();
+        q.add(root);
+        boolean order = true;
+        while(!q.isEmpty()) {
+            List<Integer> tmp = new ArrayList<>();
+            for(int i = 0; i < size; ++i) {
+                TreeNode n = q.poll();
+                if(order) {
+                    tmp.add(n.val);
+                } else {
+                    tmp.add(0, n.val);
+                }
+                if(n.left != null) q.add(n.left);
+                if(n.right != null) q.add(n.right);
+            }
+            res.add(tmp);
+            size = q.size();
+            order = order ? false : true;
+        }
+        return res;
+    }
+}
+
+# 方法三：递归。思路其实同方法二，只不过该方法并不会先访问每一层再访问下一层。但是因为每个节点都是先访问左节点，再访问右节点，
+# 可以保证一层内节点的访问顺序是从左到右的。
+
+public class Solution {
+    public List<List<Integer>> zigzagLevelOrder(TreeNode root) 
+    {
+        List<List<Integer>> sol = new ArrayList<>();
+        travel(root, sol, 0);
+        return sol;
+    }
+    
+    private void travel(TreeNode curr, List<List<Integer>> sol, int level)
+    {
+        if(curr == null) return;
+        
+        if(sol.size() <= level)
+        {
+            List<Integer> newLevel = new LinkedList<>();
+            sol.add(newLevel);
+        }
+        
+        List<Integer> collection  = sol.get(level);
+        if(level % 2 == 0) collection.add(curr.val);
+        else collection.add(0, curr.val);
+        
+        travel(curr.left, sol, level + 1);
+        travel(curr.right, sol, level + 1);
+    }
+}
