@@ -1,0 +1,46 @@
+https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/description/
+
+Say you have an array for which the ith element is the price of a given stock on day i.
+
+Design an algorithm to find the maximum profit. You may complete as many transactions as you like (i.e., buy one and sell one share of the stock multiple times).
+
+Note: You may not engage in multiple transactions at the same time (i.e., you must sell the stock before you buy again).
+
+Example 1:
+
+Input: [7,1,5,3,6,4]
+Output: 7
+Explanation: Buy on day 2 (price = 1) and sell on day 3 (price = 5), profit = 5-1 = 4.
+             Then buy on day 4 (price = 3) and sell on day 5 (price = 6), profit = 6-3 = 3.
+Example 2:
+
+Input: [1,2,3,4,5]
+Output: 4
+Explanation: Buy on day 1 (price = 1) and sell on day 5 (price = 5), profit = 5-1 = 4.
+             Note that you cannot buy on day 1, buy on day 2 and sell them later, as you are
+             engaging multiple transactions at the same time. You must sell before buying again.
+Example 3:
+
+Input: [7,6,4,3,1]
+Output: 0
+Explanation: In this case, no transaction is done, i.e. max profit = 0.
+
+# 方法一：在价格最低时买入，当遇到价格开始下降时再卖出，直到价格开始上涨时再买入，如此往复。
+# 在连续上升的最高点卖出，之所以能保证最大收益，是因为以下原因：假设tmin和tmax分别为连续上升过程中的最大和最小值，
+# 那么这时tmax-tmin这一块的利润已经是固定的了，如果不在tmax卖出，那么价格就相当于是在tamx时买入的价格，
+# 这样在后面遇到比tmax更高的值时，显然在tmax时卖掉，买入比tmax小的价格比起一直保留tmax所能得到利润更大。
+
+class Solution {
+    public int maxProfit(int[] prices) {
+        int l = prices.length, profit = 0;
+        for(int i = 1; i < l;) {
+            while(i < l && prices[i] <= prices[i - 1])
+                i++;
+            int min = prices[i - 1];
+            while(i < l && prices[i] >= prices[i - 1])
+                i++;
+            profit += prices[i - 1] - min;
+        }
+        return profit;
+    }
+}
