@@ -1,0 +1,90 @@
+https://leetcode.com/problems/populating-next-right-pointers-in-each-node/description/
+
+Given a binary tree
+
+struct TreeLinkNode {
+  TreeLinkNode *left;
+  TreeLinkNode *right;
+  TreeLinkNode *next;
+}
+Populate each next pointer to point to its next right node. If there is no next right node, the next pointer should be set to NULL.
+
+Initially, all next pointers are set to NULL.
+
+Note:
+
+You may only use constant extra space.
+Recursive approach is fine, implicit stack space does not count as extra space for this problem.
+You may assume that it is a perfect binary tree (ie, all leaves are at the same level, and every parent has two children).
+Example:
+
+Given the following perfect binary tree,
+
+     1
+   /  \
+  2    3
+ / \  / \
+4  5  6  7
+After calling your function, the tree should look like:
+
+     1 -> NULL
+   /  \
+  2 -> 3 -> NULL
+ / \  / \
+4->5->6->7 -> NULL
+
+# 方法一：递归。一个节点的左子树的右边界中的节点一定会与该节点的右子树的左边界中节点一一相连，
+# 如上例中的1的左子树的右边界为2和5，右子树的左边界为3和6。
+# 因此，对于每一个节点，通过connect(left, right)将左子树右边界中的节点与右子树左边界中节点相连，然后递归处理左子树和右子树即可。
+
+public class Solution {
+    public void connect(TreeLinkNode root) {
+        if(root == null || root.left == null)
+            return;        
+        connect(root.left, root.right);
+        connect(root.left);
+        connect(root.right);
+    }
+    
+    public void connect(TreeLinkNode left, TreeLinkNode right) {
+        while(left != null) {
+            left.next = right;
+            left = left.right;
+            right = right.left;
+        }
+    }
+}
+
+# 方法二：迭代。pre一直保存着每一层最左边的节点。如果我们可以保证某一层时所有节点都是通过next相连的，我们就可以在这一层内通过next进行游走，
+# 凡是通过next相连的边，那么就像下一层对应位置的边也连起来（cur->right->next = cur->next->left）。
+
+void connect(TreeLinkNode *root) {
+    if (root == NULL) return;
+    TreeLinkNode *pre = root;
+    TreeLinkNode *cur = NULL;
+    while(pre->left) {
+        cur = pre;
+        while(cur) {
+            cur->left->next = cur->right;
+            if(cur->next) cur->right->next = cur->next->left;
+            cur = cur->next;
+        }
+        pre = pre->left;
+    }
+}
+
+# 方法三：另一种递归，思想同方法二，只不过方法二先处理一层，该方法则是同时向右和向深处走。
+
+public void connect(TreeLinkNode root) {
+    if(root == null)
+        return;
+        
+    if(root.left != null){
+        root.left.next = root.right;
+        if(root.next != null)
+            root.right.next = root.next.left;
+    }
+    
+    connect(root.left);
+    connect(root.right);
+}
