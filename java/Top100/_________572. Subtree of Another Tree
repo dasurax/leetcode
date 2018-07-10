@@ -1,0 +1,95 @@
+# https://leetcode.com/problems/subtree-of-another-tree/description/
+
+Given two non-empty binary trees s and t, check whether tree t has exactly the same structure and node values with a subtree of s. A subtree of s is a tree consists of a node in s and all of this node's descendants. The tree s could also be considered as a subtree of itself.
+
+Example 1:
+Given tree s:
+
+     3
+    / \
+   4   5
+  / \
+ 1   2
+Given tree t:
+   4 
+  / \
+ 1   2
+Return true, because t has the same structure and node values with a subtree of s.
+Example 2:
+Given tree s:
+
+     3
+    / \
+   4   5
+  / \
+ 1   2
+    /
+   0
+Given tree t:
+   4
+  / \
+ 1   2
+Return false.
+Example 3:
+Given tree s:
+   2   
+  / \
+ 3   4
+   
+Given tree t:
+   2   
+  / 
+ 3   
+Return false.
+
+# 方法一：前序遍历(或后序遍历，注意中序不可，使用中序的话，永远会先找到最左子节点，且为null，因此会也附上',#'，如例3s访问完2后，会访问4的左节点)，
+# 将树转换为字符串。关键点在于，对于null节点，使用#来编码，这样若t是s中某棵子树的一部分时，
+# 那么对于s的这一棵子树中与t中刚好不同的某一个点n（即该点与t中的点值相同，但是比t中的点多了分支，如例2中2这个点），
+# t中缺少的那个分支会被编码为 ',#'，而n中的那个分支会被编码为其他的值，因此会不匹配。
+
+public class Solution {
+    public boolean isSubtree(TreeNode s, TreeNode t) {
+        String spreorder = generatepreorderString(s); 
+        String tpreorder = generatepreorderString(t);
+        return spreorder.contains(tpreorder) ;
+    }
+    
+    public String generatepreorderString(TreeNode s){
+        StringBuilder sb = new StringBuilder();
+        Stack<TreeNode> stacktree = new Stack();
+        stacktree.push(s);
+        while(!stacktree.isEmpty()){
+           TreeNode popelem = stacktree.pop();
+           if(popelem==null)
+              sb.append(",#"); // Appending # inorder to handle same values but not subtree cases
+           else      
+              sb.append(","+popelem.val);
+           if(popelem!=null){
+                stacktree.push(popelem.right);    
+                stacktree.push(popelem.left);  
+           }
+        }
+        return sb.toString();
+    }
+}
+
+# 方法二：暴力解。
+
+public class Solution {
+    public boolean isSubtree(TreeNode s, TreeNode t) {
+        if (s == null) return false;
+        if (isSame(s, t)) return true;
+        return isSubtree(s.left, t) || isSubtree(s.right, t);
+    }
+    
+    private boolean isSame(TreeNode s, TreeNode t) {
+        if (s == null && t == null) return true;
+        if (s == null || t == null) return false;
+        
+        if (s.val != t.val) return false;
+        
+        return isSame(s.left, t.left) && isSame(s.right, t.right);
+    }
+}
+
+# 注意！！！第一次提交成功的方法实际上是有误的。因为使用后续遍历的话，只有左子树和只有右子树所得的遍历结果相同，但实际上是不同的结构。
