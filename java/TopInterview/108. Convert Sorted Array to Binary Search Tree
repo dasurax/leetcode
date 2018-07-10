@@ -1,0 +1,76 @@
+https://leetcode.com/problems/convert-sorted-array-to-binary-search-tree/description/
+
+Given an array where elements are sorted in ascending order, convert it to a height balanced BST.
+
+For this problem, a height-balanced binary tree is defined as a binary tree in which the depth of the two subtrees of every node never differ by more than 1.
+
+Example:
+
+Given the sorted array: [-10,-3,0,5,9],
+
+One possible answer is: [0,-3,9,-10,null,5], which represents the following height balanced BST:
+
+      0
+     / \
+   -3   9
+   /   /
+ -10  5
+ 
+ # 递归：
+ 
+ class Solution {
+    public TreeNode sortedArrayToBST(int[] nums) {
+        int l = nums.length;
+        if(l == 0) return null;
+        return buildSubtree(nums, 0, l - 1);
+    }
+    
+    private TreeNode buildSubtree(int[] nums, int start, int end) {
+        if(start > end)
+            return null;
+        int mid = (start + end) / 2;
+        TreeNode root = new TreeNode(nums[mid]);
+        root.left = buildSubtree(nums, start, mid - 1);
+        root.right = buildSubtree(nums, mid + 1, end);
+        return root;
+    }
+}
+
+# 迭代：通过两个堆栈来保存范围。因为每次放入左界的同时也要放入右界，因此可以只用一个栈，每次入两个值，取的时候也取两个值。
+
+public class Solution {    
+    public TreeNode sortedArrayToBST(int[] nums) {
+        
+        int len = nums.length;
+        if ( len == 0 ) { return null; }
+        
+        // 0 as a placeholder
+        TreeNode head = new TreeNode(0); 
+        
+        Deque<TreeNode> nodeStack       = new LinkedList<TreeNode>() {{ push(head);  }};
+        Deque<Integer>  leftIndexStack  = new LinkedList<Integer>()  {{ push(0);     }};
+        Deque<Integer>  rightIndexStack = new LinkedList<Integer>()  {{ push(len-1); }};
+        
+        while ( !nodeStack.isEmpty() ) {
+            TreeNode currNode = nodeStack.pop();
+            int left  = leftIndexStack.pop();
+            int right = rightIndexStack.pop();
+            int mid   = left + (right-left)/2; // avoid overflow
+            currNode.val = nums[mid];
+            if ( left <= mid-1 ) {
+                currNode.left = new TreeNode(0);  
+                nodeStack.push(currNode.left);
+                leftIndexStack.push(left);
+                rightIndexStack.push(mid-1);
+            }
+            if ( mid+1 <= right ) {
+                currNode.right = new TreeNode(0);
+                nodeStack.push(currNode.right);
+                leftIndexStack.push(mid+1);
+                rightIndexStack.push(right);
+            }
+        }
+        return head;
+    }
+
+}
