@@ -1,0 +1,242 @@
+https://leetcode.com/problems/surrounded-regions/description/
+
+Given a 2D board containing 'X' and 'O' (the letter O), capture all regions surrounded by 'X'.
+
+A region is captured by flipping all 'O's into 'X's in that surrounded region.
+
+Example:
+
+X X X X
+X O O X
+X X O X
+X O X X
+After running your function, the board should be:
+
+X X X X
+X X X X
+X X X X
+X O X X
+Explanation:
+
+Surrounded regions shouldn’t be on the border, which means that any 'O' on the border of the board are not flipped to 'X'. 
+Any 'O' that is not on the border and it is not connected to an 'O' on the border will be flipped to 'X'. 
+Two cells are connected if they are adjacent cells connected horizontally or vertically.
+
+# 方法一：并查集。如果一个点与边界相连，那么就将该点下方和右侧的点连接到这个点，否则将这个点连接到下方或右侧的点（因为下方和右侧点有可能与边界相连）。
+# 这里的关键点在于，当将某个点A连接到另一个点B时，我们需要将之前那些与A相连的点也连接到B。
+# 举例来说，当A不与边界相连时，我们会首先将它连接到右侧的点。随后，当我们将A连接到下方的点时，如果直接修改A的根节点为下方的点，
+# 那么A与右边的点的连接也就断开了。这时如果A下方的点为边界点，那么A右边的点本应是与边界相连的，但算法会认为这个点并没有与边界相连。
+# 因此我们需要将A一直到A根节点路径上的所有的点都指向A下方的点。
+# !!!!!并查集连接时要将一个节点的根节点连接到另一个节点的根节点上，而不是将这个节点连接到另一个节点根节点上!!!!!
+
+class Solution {
+    public void solve(char[][] board) {
+        int row = board.length;
+        if(row < 3 || board[0].length < 3)
+            return;
+        int col = board[0].length, head[] = new int[row * col];
+        for(int i = 0; i < row; i++) {
+            for(int j = 0; j < col; j++) {
+                if(board[i][j] == 'O')
+                    head[i * col + j] = i * col + j;
+            }
+        }
+        for(int i = 0; i < row - 1; i++) {
+            for(int j = 0; j < col - 1; j++) {
+                if(board[i][j] == 'O' && board[i][j + 1] == 'O') {
+                    int idx = i * col + j;
+                    if(isBorder(idx, head, row, col)) 
+                        quickUnion(idx + 1, idx, head);
+                    else 
+                        quickUnion(idx, idx + 1, head);  
+                }
+                if(board[i][j] == 'O' && board[i + 1][j] == 'O') {
+                    int idx = i * col + j;
+                    if(isBorder(idx, head, row, col))
+                        quickUnion(idx + col, idx, head);
+                    else 
+                        quickUnion(idx, idx + col, head);
+                }
+            }   
+        
+        }
+        for(int i = 0; i < row * col; i++) {
+            if(board[i / col][i % col] == 'O') {
+                if(!isBorder(i, head, row, col))
+                    board[i / col][i % col] = 'X';
+            }
+        }
+    }
+    
+    public boolean isBorder(int i, int[] head, int row, int col) {
+        int hi = quickFind(i, head);
+        if(hi % col == 0 || hi % col == col - 1 || hi / col == 0 || hi / col == row - 1)
+            return true;
+        return false;
+    }
+    
+    public void quickUnion(int from, int to, int[] head) {
+        int toHead = quickFind(to, head);
+        while(head[from] != from) {
+            int tmp = head[from];
+            head[from] = toHead;
+            from = tmp;
+        }
+        head[from] = toHead;
+    }
+    
+    public int quickFind(int i, int[] head) {
+        while(head[i] != i) {
+            head[i] = head[head[i]];
+            i = head[i];
+        }
+        return i;
+    }
+}
+
+# 另一种并查集写法：将所有的边界点都先连接到一个dummy节点(n*m)，在连接时，将小的节点连接到大的的节点上，
+# 这样凡是与边界相连的节点最终都会与dummy节点相连。
+
+class UF
+{
+private:
+	int* id;     // id[i] = parent of i
+	int* rank;  // rank[i] = rank of subtree rooted at i (cannot be more than 31)
+	int count;    // number of components
+public:
+	UF(int N)
+	{
+		count = N;
+		id = new int[N];
+		rank = new int[N];
+		for (int i = 0; i < N; i++) {
+			id[i] = i;
+			rank[i] = 0;
+		}
+	}
+	~UF()
+	{
+		delete [] id;
+		delete [] rank;
+	}
+	int find(int p) {
+		while (p != id[p]) {
+			id[p] = id[id[p]];    // path compression by halving
+			p = id[p];
+		}
+		return p;
+	}
+	int getCount() {
+		return count;
+	}
+	bool connected(int p, int q) {
+		return find(p) == find(q);
+	}
+	void connect(int p, int q) {
+		int i = find(p);
+		int j = find(q);
+		if (i == j) return;
+		if (rank[i] < rank[j]) id[i] = j;
+		else if (rank[i] > rank[j]) id[j] = i;
+		else {
+			id[j] = i;
+			rank[i]++;
+		}
+		count--;
+	}
+};
+
+class Solution {
+public:
+    void solve(vector<vector<char>> &board) {
+        int n = board.size();
+        if(n==0)    return;
+        int m = board[0].size();
+        UF uf = UF(n*m+1);
+        
+        for(int i=0;i<n;i++){
+            for(int j=0;j<m;j++){
+                if(board[i][j]=='O') {// if a 'O' node is on the boundry, connect it to the dummy node 
+                    if(i==0||i==n-1||j==0||j==m-1)
+                        uf.connect(i*m+j,n*m);
+                    if(i==n-1||j==m-1)
+                        continue;
+                    if(board[i+1][j]=='O')
+                        uf.connect(i*m+j,(i+1)*m+j);
+                    if(board[i][j+1]=='O')
+                        uf.connect(i*m+j,i*m+j+1);
+                }
+            }
+        }
+        for(int i=0;i<n;i++){
+            for(int j=0;j<m;j++){
+                if(!uf.connected(i*m+j,n*m)){ // if a 'O' node is not connected to the dummy node, it is captured
+                    board[i][j]='X';
+                }
+            }
+        }
+    }
+};
+
+# 方法二：先将所有边界上的以及与边界上相连的'O'都转换为'1'，然后再奖所有的'O'都转换为'X'，最后再奖'1'再转回'O'。
+# DFS写法。注意DFS可能会导致Stack Overflow，例如矩阵中如果有一条'O'的非常长的链，那么递归调用的层数会非常的多。使用BFS可以避免。
+
+class Solution {
+public:
+	void solve(vector<vector<char>>& board) {
+        int i,j;
+        int row=board.size();
+        if(!row)
+        	return;
+        int col=board[0].size();
+
+		for(i=0;i<row;i++){
+			check(board,i,0,row,col);  // 检查左边界
+			if(col>1)
+				check(board,i,col-1,row,col);  // 检查右边界
+		}
+		for(j=1;j+1<col;j++){
+			check(board,0,j,row,col);  // 检查上边界
+			if(row>1)
+				check(board,row-1,j,row,col);  // 检查下边界
+		}
+		for(i=0;i<row;i++)
+			for(j=0;j<col;j++)
+				if(board[i][j]=='O')
+					board[i][j]='X';
+		for(i=0;i<row;i++)
+			for(j=0;j<col;j++)
+				if(board[i][j]=='1')
+					board[i][j]='O';
+    }
+	void check(vector<vector<char> >&vec,int i,int j,int row,int col){
+		if(vec[i][j]=='O'){
+			vec[i][j]='1';
+			if(i>1)  // i>1而不是i>0是因为我们在上面的循环中已经检查了边界的情况。下面三个if同理。
+				check(vec,i-1,j,row,col);
+			if(j>1)
+				check(vec,i,j-1,row,col);
+			if(i+2<row)
+				check(vec,i+1,j,row,col);
+			if(j+2<col)
+				check(vec,i,j+1,row,col);
+		}
+	}
+};
+
+# BFS写法。先将所有的边界点入队。若出队的点为O，修改该节点为S，并将所有的邻居节点入队。直到队列为空，说明所有与边界相连的O都已经被修改为S。
+
+def solve(self, board):
+    if not any(board): return
+
+    m, n = len(board), len(board[0])
+    save = [ij for k in range(m+n) for ij in ((0, k), (m-1, k), (k, 0), (k, n-1))]
+    while save:
+        i, j = save.pop()
+        if 0 <= i < m and 0 <= j < n and board[i][j] == 'O':
+            board[i][j] = 'S'
+            save += (i, j-1), (i, j+1), (i-1, j), (i+1, j)
+
+    for row in board:
+        for i, c in enumerate(row):
+            row[i] = 'XO'[c == 'S']
