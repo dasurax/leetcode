@@ -1,0 +1,61 @@
+https://leetcode.com/problems/divide-two-integers/description/
+
+Given two integers dividend and divisor, divide two integers without using multiplication, division and mod operator.
+
+Return the quotient after dividing dividend by divisor.
+
+The integer division should truncate toward zero.
+
+Example 1:
+
+Input: dividend = 10, divisor = 3
+Output: 3
+Example 2:
+
+Input: dividend = 7, divisor = -3
+Output: -2
+Note:
+
+Both dividend and divisor will be 32-bit signed integers.
+The divisor will never be 0.
+Assume we are dealing with an environment which could only store integers 
+within the 32-bit signed integer range: [−231,  231 − 1]. For the purpose of this problem, 
+assume that your function returns 231 − 1 when the division result overflows.
+
+# 思路：举例来说，求15/3，那么先看15是否大于3，是则将3左移一位变成6，再变成12，当变成24时，已经超出了15。12是将3左移两位得来的，
+# 相当于包含 1 << 2 == 4个3，因此在最终结果上加上4。从15中减去12，还剩3，再重复上述的过程。
+# 注意几个边界情况：1、最小负数除以-1时会发生溢出，
+# 2、左移操作前要判断左移后是否会溢出，
+# 3、算法会预先将divisor变为和dividend相同的符号，当divisor为最小负数时，直接变号会溢出。
+
+class Solution {
+    public int divide(int dividend, int divisor) {
+        if(dividend == Integer.MIN_VALUE && divisor == -1)
+            return Integer.MAX_VALUE;
+        if(divisor == Integer.MIN_VALUE)
+            return dividend == Integer.MIN_VALUE ? 1 : 0;
+        if(dividend == 0)
+            return 0;
+        boolean isOpposite = false;
+        int tmp = divisor, r = dividend, c = 1, t = 0, ph = Integer.MAX_VALUE >> 1, nh = Integer.MIN_VALUE >> 1;
+        if(dividend < 0) {
+            isOpposite = divisor > 0;
+            divisor = divisor > 0 ? 0 - divisor : divisor;
+        } else {
+            isOpposite = divisor < 0;
+            divisor = divisor < 0 ? 0 - divisor : divisor;
+        }
+        tmp = divisor;
+        while(dividend > 0 && tmp <= r || dividend < 0 && tmp >= r) {
+            while(dividend < 0 && tmp >= nh && tmp << 1 >= r || dividend > 0 && tmp <= ph && tmp << 1 <= r) {
+                tmp <<= 1;
+                c <<= 1;
+            }
+            t += c;
+            r -= tmp;
+            tmp = divisor;
+            c = 1;
+        }
+        return isOpposite ? 0 - t: t;
+    }
+}
