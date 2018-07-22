@@ -1,0 +1,76 @@
+https://leetcode.com/problems/valid-sudoku/description/
+
+Determine if a 9x9 Sudoku board is valid. Only the filled cells need to be validated according to the following rules:
+
+Each row must contain the digits 1-9 without repetition.
+Each column must contain the digits 1-9 without repetition.
+Each of the 9 3x3 sub-boxes of the grid must contain the digits 1-9 without repetition.
+
+A Sudoku board (partially filled) could be valid but is not necessarily solvable.
+Only the filled cells need to be validated according to the mentioned rules.
+The given board contain only digits 1-9 and the character '.'.
+The given board size is always 9x9.
+
+# 这一题只需检查已经被填充的部分是否存在重复的地方，而不需要检查是否可以解。
+
+# 方法一：每次检查一行一列和一个格子。
+
+class Solution {
+    public boolean isValidSudoku(char[][] board) {
+        for(int i = 0; i < 9; i++) { // 每次检查第i行，第i列，和第i个格子
+            Set<Character> row = new HashSet<Character>();
+            Set<Character> col = new HashSet<Character>();
+            Set<Character> grid = new HashSet<Character>();
+            for(int j = 0; j < 9; j++) {
+                if(board[i][j] != '.' && !row.add(board[i][j])) // ith row
+                    return false;
+                if(board[j][i] != '.' && !col.add(board[j][i])) // ith col
+                    return false;
+                // 第i给格子的左上角的位置为[i/3*3][(i%3)*3]
+                if(board[i/3*3 + j/3][(i%3)*3 + j%3] != '.' && !grid.add(board[i/3*3 + j/3][(i%3)*3 + j%3])) // ith grid
+                    return false;
+            }
+        }
+        return true;
+    }
+}
+
+# 方法二：按顺序检查每个元素，并检查该元素所处的行、列、格子中是否包含该元素。used1[i]表示第i行，used2[j]表示第j列，used3[k]表示第k个格子。
+
+class Solution
+{
+public:
+    bool isValidSudoku(vector<vector<char> > &board)
+    {
+        int used1[9][9] = {0}, used2[9][9] = {0}, used3[9][9] = {0};
+        
+        for(int i = 0; i < board.size(); ++ i)
+            for(int j = 0; j < board[i].size(); ++ j)
+                if(board[i][j] != '.')
+                {
+                    int num = board[i][j] - '0' - 1, k = i / 3 * 3 + j / 3;
+                    if(used1[i][num] || used2[j][num] || used3[k][num])
+                        return false;
+                    used1[i][num] = used2[j][num] = used3[k][num] = 1;
+                }
+        
+        return true;
+    }
+};
+
+# 方法三：更readable的方式。
+
+public boolean isValidSudoku(char[][] board) {
+    Set seen = new HashSet();
+    for (int i=0; i<9; ++i) {
+        for (int j=0; j<9; ++j) {
+            char number = board[i][j];
+            if (number != '.')
+                if (!seen.add(number + " in row " + i) ||
+                    !seen.add(number + " in column " + j) ||
+                    !seen.add(number + " in block " + i/3 + "-" + j/3))
+                    return false;
+        }
+    }
+    return true;
+}
