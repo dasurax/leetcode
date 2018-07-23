@@ -1,0 +1,87 @@
+https://leetcode.com/problems/first-missing-positive/description/
+
+Given an unsorted integer array, find the smallest missing positive integer.
+
+Example 1:
+
+Input: [1,2,0]
+Output: 3
+Example 2:
+
+Input: [3,4,-1,1]
+Output: 2
+Example 3:
+
+Input: [7,8,9,11,12]
+Output: 1
+Note:
+
+Your algorithm should run in O(n) time and uses constant extra space.
+
+# 方法一：目标是将nums[i]放到下标为nums[i]-1的位置，例如如果nums[i]为4,就要将4交换到下标为3的位置。如果i位置上的值为i+1就认为是正确的位置，
+# 第一个不正确的位置即为第一个缺失的正数。while循环内的部分最多发生n次，因此算法复杂度为O(n)。
+
+class Solution {
+    public int firstMissingPositive(int[] nums) {
+        int l = nums.length, cur, tmp;
+        for(int i = 0; i < l; i++) {
+            cur = nums[i];            
+            while(cur > 0 && cur <= l && nums[cur - 1] != cur) {
+                tmp = nums[cur - 1];
+                nums[cur - 1] = cur;
+                nums[i] = tmp;
+                cur = tmp;
+            }
+        }
+        for(int i = 0; i < l; i++) {
+            if(nums[i] != i + 1)
+                return i + 1;
+        }
+        return l + 1;
+    }
+}
+
+# 方法二：利用快排的思想，先将所有的正数放到前面去，假设共有k个正数。在所有的正数中，若某个数出现了，且小于等于k，就将该数-1位置的值置为负数。
+# 这样最后看前k个位置中那个数不是负数，就是第一个缺失的正数。
+# ！！！！！！注意swap的骚操作。
+
+ public int firstMissingPositive(int[] A) {
+    int n=A.length;
+    if(n==0)
+        return 1;
+    int k=partition(A)+1;
+    int temp=0;
+    int first_missing_Index=k;
+    for(int i=0;i<k;i++){
+        temp=Math.abs(A[i]);
+        if(temp<=k)
+            A[temp-1]=(A[temp-1]<0)?A[temp-1]:-A[temp-1];
+    }
+    for(int i=0;i<k;i++){
+        if(A[i]>0){
+            first_missing_Index=i;
+            break;
+        }
+    }
+    return first_missing_Index+1;
+}
+
+public int partition(int[] A){
+    int n=A.length;
+    int q=-1;
+    for(int i=0;i<n;i++){
+        if(A[i]>0){
+            q++;
+            swap(A,q,i);
+        }
+    }
+    return q;
+}
+
+public void swap(int[] A, int i, int j){
+    if(i!=j){
+        A[i]^=A[j];
+        A[j]^=A[i];
+        A[i]^=A[j];
+    }
+}
