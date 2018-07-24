@@ -1,0 +1,71 @@
+P8 如何仅用递归函数和栈操作逆序一个栈。
+
+# 方法一：两种思路：先将栈顶元素弹出，逆转剩下的栈，在将栈顶元素加入栈底。
+# 另一种，先将栈底元素弹出，逆转剩下的栈，然后将栈底元素加入栈顶。
+# 下面给出思路二的代码：
+
+public class Problem_03_ReverseStackUsingRecursive {
+
+	public static void reverse(Stack<Integer> stack) {
+		if (stack.isEmpty()) {
+			return;
+		}
+		int i = getAndRemoveLastElement(stack);
+		reverse(stack);
+		stack.push(i);
+	}
+
+	public static int getAndRemoveLastElement(Stack<Integer> stack) {
+		int result = stack.pop();
+		if (stack.isEmpty()) {
+			return result;
+		} else {
+			int last = getAndRemoveLastElement(stack);
+			stack.push(result);
+			return last;
+		}
+	}
+
+	public static void main(String[] args) {
+		Stack<Integer> test = new Stack<Integer>();
+		test.push(1);
+		test.push(2);
+		test.push(3);
+		test.push(4);
+		test.push(5);
+		reverse(test);
+		while (!test.isEmpty()) {
+			System.out.println(test.pop());
+		}
+	}
+}
+
+# 方法二：将栈顶元素交换到栈底（保持其他元素相对顺序不变），将新的栈顶元素交换到第二深的位置，再将新的栈顶元素交换到第三深的位置，依此类推。
+# 该方法应该不算是只用递归，还包含了迭代的过程。
+
+public class Problem_03_ReverseStackUsingRecursive {
+
+	public void reverse(Stack<Integer> stack, int level, int k) {
+    if(level < k) { // 控制交换的次数，避免栈底已经正确的值再被交换回去。
+      int cur = stack.pop(), tmp = stack.pop();
+      stack.push(cur);  // 相当于将cur和tmp进行了互换
+      reverse(stack, level + 1, k);
+      stack.push(tmp);
+    }
+	}
+    
+	public void main() {
+		Stack<Integer> test = new Stack<Integer>();
+		test.push(1);
+		test.push(2);
+		test.push(3);
+		test.push(4);
+		test.push(5);
+    for(int i = test.size() - 1; i > 0; i--) {
+		  reverse(test, 0, i);
+    }
+		while (!test.isEmpty()) {
+			System.out.println(test.pop());
+		}
+	}
+}
