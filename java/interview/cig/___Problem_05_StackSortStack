@@ -1,0 +1,86 @@
+P13 用一个栈实现另一个占栈的排序。
+
+# 方法一：从stack出栈，若出栈元素小于help的栈顶，则直接加入到help内，否则，通过递归将栈顶元素加入到第一个小于它的元素上面。
+# 这样help从顶到底按从小到大排序，重新加入到stack后，stack便从顶到底按从大到小排序。
+
+public class Problem_05_StackSortStack {
+
+	public void bottom(Stack<Integer> stack, int num) {
+        if(stack.isEmpty()) {
+            stack.push(num);
+            return;
+        }
+        int cur = stack.pop();
+        if(num <= cur) {
+            stack.push(cur);
+            stack.push(num);
+        } else {
+            bottom(stack, num);
+            stack.push(cur);
+        }
+    }
+    
+   public void sortStackByStack(Stack<Integer> stack) {
+		Stack<Integer> help = new Stack<Integer>();
+		while (!stack.isEmpty()) {
+			bottom(help, stack.pop());
+		}
+		while (!help.isEmpty()) {
+			stack.push(help.pop());
+		}
+	}
+
+	public static void main(String[] args) {
+		Stack<Integer> stack = new Stack<Integer>();
+		stack.push(3);
+		stack.push(1);
+		stack.push(6);
+		stack.push(2);
+		stack.push(5);
+		stack.push(4);
+		sortStackByStack(stack);
+		System.out.println(stack.pop());
+		System.out.println(stack.pop());
+		System.out.println(stack.pop());
+		System.out.println(stack.pop());
+		System.out.println(stack.pop());
+		System.out.println(stack.pop());
+	}
+}
+
+# 方法二：不用递归，当stack栈顶元素小于help栈顶时直接入help栈，否则将所有大于stack栈顶元素的help栈中元素放入stack栈。
+# 这些被重新放入stack栈的元素是从小到大入栈的，因此出栈时能重新加入到help栈时，能保存从小到大的顺序。
+
+public class Problem_05_StackSortStack {
+
+	public static void sortStackByStack(Stack<Integer> stack) {
+		Stack<Integer> help = new Stack<Integer>();
+		while (!stack.isEmpty()) {
+			int cur = stack.pop();
+			while (!help.isEmpty() && help.peek() < cur) {
+				stack.push(help.pop());
+			}
+			help.push(cur);
+		}
+		while (!help.isEmpty()) {
+			stack.push(help.pop());
+		}
+	}
+
+	public static void main(String[] args) {
+		Stack<Integer> stack = new Stack<Integer>();
+		stack.push(3);
+		stack.push(1);
+		stack.push(6);
+		stack.push(2);
+		stack.push(5);
+		stack.push(4);
+		sortStackByStack(stack);
+		System.out.println(stack.pop());
+		System.out.println(stack.pop());
+		System.out.println(stack.pop());
+		System.out.println(stack.pop());
+		System.out.println(stack.pop());
+		System.out.println(stack.pop());
+	}
+}
