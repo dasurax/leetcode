@@ -1,0 +1,74 @@
+p22
+https://leetcode.com/problems/maximum-binary-tree/description/
+
+Given an integer array with no duplicates. A maximum tree building on this array is defined as follow:
+
+The root is the maximum number in the array.
+The left subtree is the maximum tree constructed from left part subarray divided by the maximum number.
+The right subtree is the maximum tree constructed from right part subarray divided by the maximum number.
+Construct the maximum tree by the given array and output the root node of this tree.
+
+Example 1:
+Input: [3,2,1,6,0,5]
+Output: return the tree root node representing the following tree:
+
+      6
+    /   \
+   3     5
+    \    / 
+     2  0   
+       \
+        1
+Note:
+The size of the given array will be in the range [1,1000].
+
+# 方法一：O(n^2)。最基本的递归解法，找到范围内的最大值，并划分为左半部和右半部递归处理。
+
+class Solution {
+    public TreeNode constructMaximumBinaryTree(int[] nums) {
+        return constructMaximumBinaryTree(nums, 0, nums.length - 1);
+    }
+    
+    public TreeNode constructMaximumBinaryTree(int[] nums, int left, int right) {
+        if(left > right)
+            return null;
+        if(left == right)
+            return new TreeNode(nums[left]);
+        int max = Integer.MIN_VALUE, imax = 0;
+        for(int i = left; i <= right; i++) {
+            if(nums[i] > max) {
+                max = nums[i];
+                imax = i;
+            }
+        }
+        TreeNode root = new TreeNode(max);
+        root.left = constructMaximumBinaryTree(nums, left, imax - 1);
+        root.right = constructMaximumBinaryTree(nums, imax + 1, right);
+        return root;
+    }
+}
+
+# 方法二：O(n)。使用一个堆栈，保存堆栈中元素按降序排列。当新元素小于栈顶元素时，将栈顶元素的右子树指向新元素（这个指向有可能会变，
+# 例如5，2，3，会先将5的右子树链接到2，然后又会链接到3）。若新元素大于栈顶元素，则一直出栈找到最大的那个小于新元素的栈内元素，
+# 并将它设置为新元素的左子树。此时若栈内不为空（这时栈顶元素大于新元素），则将栈顶元素的右子树设置为新元素。
+# 该算法可行的原因是，当出现新元素大于栈顶元素时，假设栈内存在大于新元素的值，那么新元素应该作为这个元素的右子树，
+# 而栈内小于新元素的元素则应成为该元素的左子树。
+
+class Solution {
+    public TreeNode constructMaximumBinaryTree(int[] nums) {
+        int l = nums.length;
+        if(l == 0) return null;
+        if(l == 1) return new TreeNode(nums[0]);
+        Deque<TreeNode> stack = new LinkedList<>();
+        stack.push(new TreeNode(nums[0]));
+        for(int i = 1; i < l; i++) {
+            TreeNode cur = new TreeNode(nums[i]);
+            while(!stack.isEmpty() && nums[i] > stack.peek().val) 
+                cur.left = stack.poll();
+            if(!stack.isEmpty()) 
+                stack.peek().right = cur;
+            stack.push(cur);
+        }
+        return stack.removeLast();
+    }
+}
