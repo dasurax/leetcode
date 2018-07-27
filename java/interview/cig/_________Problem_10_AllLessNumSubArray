@@ -1,0 +1,153 @@
+p31 给定一个值num，找出数组中所有最大值减去最小值小于等于num的子数组。
+
+# 方法一：使用单调队列。一个队列中保存子数组范围内的候选最小值，另一个保存最大值。
+# 以最大值为例，当某一个元素入队（子数组右边界j对应该元素）时，则将队列中所有小于该元素的值都弹出，因为截至到j的子数组都不可能以这些值为最大值。
+# 最小值的队列同理。这样，最大值队列中始终保持递减，而最小值队列中始终保持递增。
+# 固定左边界i，移动右边界j，当[i,j]内的最大值最小值之差大于num时，则将以i为左边界，右边界从i到j的所以子数组的数量加入到结果中，并将i向左移动。
+
+public class Problem_10_AllLessNumSubArray {
+
+	public static int getNum(int[] arr, int num) {
+		if (arr == null || arr.length == 0) {
+			return 0;
+		}
+		LinkedList<Integer> qmin = new LinkedList<Integer>();
+		LinkedList<Integer> qmax = new LinkedList<Integer>();
+		int i = 0;
+		int j = 0;
+		int res = 0;
+		while (i < arr.length) {
+			while (j < arr.length) {
+				while (!qmin.isEmpty() && arr[qmin.peekLast()] >= arr[j]) {
+					qmin.pollLast();
+				}
+				qmin.addLast(j);
+				while (!qmax.isEmpty() && arr[qmax.peekLast()] <= arr[j]) {
+					qmax.pollLast();
+				}
+				qmax.addLast(j);
+				if (arr[qmax.getFirst()] - arr[qmin.getFirst()] > num) {
+					break;
+				}
+				j++;
+			}
+			if (qmin.peekFirst() == i) {
+				qmin.pollFirst();
+			}
+			if (qmax.peekFirst() == i) {
+				qmax.pollFirst();
+			}
+			res += j - i;
+			i++;
+		}
+		return res;
+	}
+
+	// for test
+	public static int[] getRandomArray(int len) {
+		if (len < 0) {
+			return null;
+		}
+		int[] arr = new int[len];
+		for (int i = 0; i < len; i++) {
+			arr[i] = (int) (Math.random() * 10);
+		}
+		return arr;
+	}
+
+	// for test
+	public static void printArray(int[] arr) {
+		if (arr != null) {
+			for (int i = 0; i < arr.length; i++) {
+				System.out.print(arr[i] + " ");
+			}
+			System.out.println();
+		}
+	}
+		
+	public static void main(String[] args) {
+		int[] arr = getRandomArray(30);
+		int num = 5;
+		printArray(arr);
+		System.out.println(getNum(arr, num));
+	}
+}
+
+# 方法二：每次移动右边界i时，若满足条件就加上所有左边界为left，右边界为从left到i的子数组的数量。
+# 若不满足，则从最大值队列中开始出队，同时要保证最小值队列内的元素也在正确的范围内。
+# 方法一更好。
+
+public class Problem_10_AllLessNumSubArray {
+	// for test
+	public static int[] getRandomArray(int len) {
+		if (len < 0) {
+			return null;
+		}
+		int[] arr = new int[len];
+		for (int i = 0; i < len; i++) {
+			arr[i] = (int) (Math.random() * 10);
+		}
+		return arr;
+	}
+
+	// for test
+	public static void printArray(int[] arr) {
+		if (arr != null) {
+			for (int i = 0; i < arr.length; i++) {
+				System.out.print(arr[i] + " ");
+			}
+			System.out.println();
+		}
+	}
+
+	public static int getNum2(int[] arr, int num) {
+        if (arr == null || arr.length == 0) {
+            return 0;
+        }
+        int res = 0, left = 0;
+        LinkedList<Integer> qmin = new LinkedList<Integer>();
+        LinkedList<Integer> qmax = new LinkedList<Integer>();
+        for(int i = 0; i < arr.length; i++) {
+            if(qmax.isEmpty() || arr[qmax.peekLast()] > arr[i])
+                qmax.add(i);
+            else {
+                while (!qmax.isEmpty() && arr[qmax.peekLast()] <= arr[i])
+                    qmax.pollLast();
+                qmax.add(i);
+            }
+            if(qmin.isEmpty() || arr[qmin.peekLast()] < arr[i])
+                qmin.add(i);
+            else {
+                while (!qmin.isEmpty() && arr[qmin.peekLast()] >= arr[i])
+                    qmin.pollLast();
+                qmin.add(i);
+            }
+            if(arr[qmax.peekFirst()] - arr[qmin.peekFirst()] <= num) {
+                res += i - left + 1;
+            }
+            else {
+                while(arr[qmax.peekFirst()] - arr[qmin.peekFirst()] > num) {
+                    if(qmax.size() > 1) { // 先从最大值队列开始出队，因为i是最新加入队列的，当最大值最小值队列都只剩i时一定满足条件，
+                                          // 因此不用将i弹出，要保证qmax.size() > 1
+                        left = qmax.pollFirst() + 1;
+                        wile(qmin.peekFirst() <= left - 1) // 如果qmax出队的元素在qmin头部的右侧，需要将qmin的头部出队
+                            qmin.pollFirst();
+                    } else if(qmin.size() > 1) {
+                        left = qmin.pollFirst() + 1;
+                        while(qmax.peekFirst() <= left - 1)
+                            qmax.pollFirst();
+                    }
+                }
+                res += i - left + 1;
+            }
+        }
+        return res;
+    }
+		
+	public static void main(String[] args) {
+		int[] arr = getRandomArray(30);
+		int num = 5;
+		printArray(arr);
+		System.out.println(getNum2(arr, num));
+	}
+}
