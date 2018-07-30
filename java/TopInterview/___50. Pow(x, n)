@@ -1,0 +1,47 @@
+https://leetcode.com/problems/powx-n/description/
+
+Implement pow(x, n), which calculates x raised to the power n (xn).
+
+Example 1:
+
+Input: 2.00000, 10
+Output: 1024.00000
+Example 2:
+
+Input: 2.10000, 3
+Output: 9.26100
+Example 3:
+
+Input: 2.00000, -2
+Output: 0.25000
+Explanation: 2-2 = 1/22 = 1/4 = 0.25
+Note:
+
+-100.0 < x < 100.0
+n is a 32-bit signed integer, within the range [−231, 231 − 1]
+
+# 方法一：递归，O(logn)。注意一种写法是当n<0时，将x变成1/x，将n变成-n。但当n为int_min时，-n会发生溢出。
+
+public class Solution {
+    public double myPow(double x, int n) {
+        if(n == 0) return 1.;
+        double res = myPow(x, n / 2);
+        return n % 2 == 0 ? res * res : n < 0 ? res * res * (1 / x) : res * res * x;
+    }
+}
+
+# 方法二：迭代。将n可以表示成2禁止的形式，例如n=9，那么res = x^8 * x^1。因此每一轮将x乘2，并将n右移，若最低位为1，则在结果中乘上x。
+# 用long避免溢出。
+
+public class Solution {
+    public double MyPow(double x, int n) {
+        double ans = 1;
+        long absN = Math.Abs((long)n);
+        while(absN > 0) {
+            if((absN&1)==1) ans *= x;
+            absN >>= 1;
+            x *= x;
+        }
+        return n < 0 ?  1/ans : ans;
+    }
+}
