@@ -1,0 +1,124 @@
+https://leetcode.com/problems/gas-station/description/
+
+There are N gas stations along a circular route, where the amount of gas at station i is gas[i].
+
+You have a car with an unlimited gas tank and it costs cost[i] of gas to travel from station i to its next station (i+1). You begin the journey with an empty tank at one of the gas stations.
+
+Return the starting gas station's index if you can travel around the circuit once in the clockwise direction, otherwise return -1.
+
+Note:
+
+If there exists a solution, it is guaranteed to be unique.
+Both input arrays are non-empty and have the same length.
+Each element in the input arrays is a non-negative integer.
+Example 1:
+
+Input: 
+gas  = [1,2,3,4,5]
+cost = [3,4,5,1,2]
+
+Output: 3
+
+Explanation:
+Start at station 3 (index 3) and fill up with 4 unit of gas. Your tank = 0 + 4 = 4
+Travel to station 4. Your tank = 4 - 1 + 5 = 8
+Travel to station 0. Your tank = 8 - 2 + 1 = 7
+Travel to station 1. Your tank = 7 - 3 + 2 = 6
+Travel to station 2. Your tank = 6 - 4 + 3 = 5
+Travel to station 3. The cost is 5. Your gas is just enough to travel back to station 3.
+Therefore, return 3 as the starting index.
+Example 2:
+
+Input: 
+gas  = [2,3,4]
+cost = [3,4,3]
+
+Output: -1
+
+Explanation:
+You can't start at station 0 or 1, as there is not enough gas to travel to the next station.
+Let's start at station 2 and fill up with 4 unit of gas. Your tank = 0 + 4 = 4
+Travel to station 0. Your tank = 4 - 3 + 2 = 3
+Travel to station 1. Your tank = 3 - 3 + 3 = 3
+You cannot travel back to station 2, as it requires 4 unit of gas but you only have 3.
+Therefore, you can't travel around the circuit once no matter where you start.
+
+# 方法一：https://leetcode.com/problems/gas-station/discuss/42572/Proof-of-%22if-total-gas-is-greater-than-total-cost-there-is-a-solution%22.-C++
+# 如果加油总数超过消耗总数（即sum 0 to n-1 (gas[x] - cost[x]) >= 0），那么一定有解。
+# 假设从0到i时，sum 0 to i (gas[x] - cost[x])取到最小值，可知从i+1开始到最后的分部和都要大于0。
+# 其次从0到i-1的所有分部和都大于从0到i的分部和。
+# 根据假设，从0到n-1的分部和大于等于0（可以视作从0到i的分部和 加上 从i+1到n-1的分布和），
+# 因此从0到i-1的任何分部和 加上 从i+1到n-1的分布和，都大于等于0。
+# 因此从i+1开始，到达n，再从头开始到达i的所有分部和都大于0，i+1既是我们所求的位置。
+
+class Solution {
+public:
+    int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
+        int n = gas.size();
+        int total(0), subsum(INT_MAX), start(0);
+        for(int i = 0; i < n; ++i){
+            total += gas[i] - cost[i];
+            if(total < subsum) {
+                subsum = total;
+                start = i + 1;
+            }
+        }
+        return (total < 0) ?  -1 : (start%n); 
+    }
+};
+
+# 方法二：初始时将最后一个加油站视作起点，第一个加油站视作终点。如果从起点出发并一直走到终点的过程中一直满足条件，就将终点向后移。
+# 否则，我们知道从当前启动出发不能走一圈，因此将起点向强前移动。
+# 算法可以work的原因是，每次移动终点且sum大于0时，我们知道从起点一定能走到终点。因此若是通过移动end使得end与start相遇且sum>=0，那么一定可行。
+# 当走不到终点时，因为从起点到终点前一个加油站是可达的，我们只需要保证要找到一个新的起点，从这个新的起点到老的起点的和能够补充所缺的即可。
+# 一旦找到了这个新的起点，可以保证从新的起点出发，一定能走到老的路径。
+# 使用反证法：如果走不到，说明从新的起点到中间某一点i的分部和小于0，因为从老的起点走到了新的起点，说明从i到老的起点的任意分部和都不够补偿所缺的，
+# 因此从新的起点到老的起点的分部和也不能补偿所缺的，与新的起点停下来的条件相矛盾。
+# 因此若是通过移动start使end与start相遇，只要sum>=0，那么一定可行。
+
+class Solution {
+public:
+    int canCompleteCircuit(vector<int> &gas, vector<int> &cost) {
+
+       int start = gas.size()-1;
+       int end = 0;
+       int sum = gas[start] - cost[start];
+       while (start > end) {
+          if (sum >= 0) {
+             sum += gas[end] - cost[end];
+             ++end;
+          }
+          else {
+             --start;
+             sum += gas[start] - cost[start];
+          }
+       }
+       return sum >= 0 ? start : -1;
+    }
+};
+
+# 方法三：当加油总数超过消耗总数时我们已经证明了一定有解。在有解的情况下，
+# 若从某一个加油站i开始到最后一直保证油箱内油量大于等于0，那么这个位置就是可行起点。
+# 因为i之前的位置都不能保证油量一直大于等于0，因此都不是可行解。
+# 而若i不是可行解，那么i之后的所有位置都不可能是可行解。
+
+public int canCompleteCircuit(int[] gas, int[] cost) {
+    int sumGas = 0;
+    int sumCost = 0;
+    int start = 0;
+    int tank = 0;
+    for (int i = 0; i < gas.length; i++) {
+        sumGas += gas[i];
+        sumCost += cost[i];
+        tank += gas[i] - cost[i];
+        if (tank < 0) {
+            start = i + 1;
+            tank = 0;
+        }
+    }
+    if (sumGas < sumCost) {
+        return -1;
+    } else {
+        return start;
+    }
+}
