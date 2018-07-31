@@ -1,0 +1,94 @@
+https://leetcode.com/problems/copy-list-with-random-pointer/description/
+
+A linked list is given such that each node contains an additional random pointer which could point to any node in the list or null.
+
+Return a deep copy of the list.
+
+# 方法一：遍历原链表，每遇到一个节点，若该节点的副本存在于map中就直接取出，否则就进行复制，并加入到map中。然后再复制该节点的next和random。
+
+public class Solution {
+    public RandomListNode copyRandomList(RandomListNode head) {
+        Map<RandomListNode, RandomListNode> map = new HashMap<>();
+        RandomListNode tmp = head, res = null, tmp2;
+        while(tmp != null) {
+            if(!map.containsKey(tmp))
+                map.put(tmp, new RandomListNode(tmp.label));
+            tmp2 = map.get(tmp);
+            if(tmp == head)
+                res = tmp2;
+            if(tmp.next != null) {
+                if (!map.containsKey(tmp.next))
+                    map.put(tmp.next, new RandomListNode(tmp.next.label));
+                tmp2.next = map.get(tmp.next);
+            }
+            if(tmp.random != null) {
+                if (!map.containsKey(tmp.random))
+                    map.put(tmp.random, new RandomListNode(tmp.random.label));
+                tmp2.random = map.get(tmp.random);
+            }
+            tmp = tmp.next;
+        }
+        return res;
+    }
+}
+
+# 方法二：不需要额外空间。
+# 第一步：先将原链表复制一遍，复制的节点插入到被复制节点后面。
+# 第二步：复制random。原节点指向原random节点,原节点的复制节点和random的复制节点分别位于它们的后面，因此可以快速的将两个复制节点链接起来。
+# 第三部：提取出复制的链表并恢复原链表。
+
+public class Solution {
+    public RandomListNode copyRandomList(RandomListNode head) {
+        if(head == null) return null;
+        Map<RandomListNode, RandomListNode> map = new HashMap<>();
+        RandomListNode tmp = head, res = null, tmp2, tmp3;
+        while(tmp != null) {
+            tmp2 = new RandomListNode(tmp.label);
+            tmp2.next = tmp.next;
+            tmp.next =tmp2;
+            tmp = tmp.next.next;
+        }
+        tmp = head;
+        while(tmp != null) {
+            tmp2 = tmp.next;
+            if(tmp.random != null)
+                tmp2.random = tmp.random.next;
+            tmp = tmp.next.next;
+        }
+        RandomListNode dummy = new RandomListNode(0);
+        tmp2 = dummy;
+        tmp = head;
+        while(tmp!= null) {
+            tmp2.next = tmp.next;
+            tmp.next = tmp.next.next;
+            tmp = tmp.next;
+            tmp2 = tmp2.next;
+        }
+        return dummy.next;
+    }
+}
+
+# 方法三：先复制一遍所有的节点放入map中，再进行链接。和方法一只是在执行顺序上有所不同。
+
+public RandomListNode copyRandomList(RandomListNode head) {
+  if (head == null) return null;
+  
+  Map<RandomListNode, RandomListNode> map = new HashMap<RandomListNode, RandomListNode>();
+  
+  // loop 1. copy all the nodes
+  RandomListNode node = head;
+  while (node != null) {
+    map.put(node, new RandomListNode(node.label));
+    node = node.next;
+  }
+  
+  // loop 2. assign next and random pointers
+  node = head;
+  while (node != null) {
+    map.get(node).next = map.get(node.next);
+    map.get(node).random = map.get(node.random);
+    node = node.next;
+  }
+  
+  return map.get(head);
+}
