@@ -1,0 +1,54 @@
+https://leetcode.com/problems/max-points-on-a-line/description/
+
+Given n points on a 2D plane, find the maximum number of points that lie on the same straight line.
+
+# 基本思路，查看任意两点所表示的直线的斜率和截距，将斜率和截距拼接起来作为key。
+# ！！！！！！！！！！！！ 但因为精度的原因，使用double作为key是个糟糕的写法。  ！！！！
+# 因此可以将斜率表示成分数的形式，为了保证相同斜率的key一样，需要把分子分母同除以最大公因数。
+# 斜率可以表示出分数的形式，但计算截距时依然涉及到double的乘除法。
+# 可以改变思路，依次遍历每一个点，找到经过这一点的不同斜率的直线的上的点，这样就可以避免截距的计算。
+# 当遍历到后面的点时，不用再次计算该点和前面点的斜率，因为相应直线已经被处理过了。
+# 需要对重叠的点进行单独的处理。
+
+public int maxPoints(Point[] points) {
+      /*
+      遍历每个点，看它和后面的每个点构成的直线上有多少个点
+      对每个点建立map，斜率是key
+      斜率要用分数的形式，不要用double的形式存
+      计算分数时先求分子分母的最大公约数gcd，再都除以gcd
+      重合的点特殊处理
+      */
+      int l = points.length;
+      if (l == 0) return 0;
+      if (l <= 2) return l;
+      int res = 0;
+      for (int i = 0; i < l - 1; i++) {
+          Map<String, Integer> map = new HashMap<>();
+          int overlap = 0;
+          int lineMax = 0;
+          for (int j = i + 1; j < l; j++) {
+              int x = points[i].x - points[j].x;
+              int y = points[i].y - points[j].y;
+              if (x == 0 && y == 0) {
+                  overlap++;
+                  continue;
+              }
+              int gcd = generateGcd(x, y);
+              x /= gcd;
+              y /= gcd;
+              // 用string来存储斜率
+              String slope = String.valueOf(x) + "_" + String.valueOf(y);
+              int count = map.getOrDefault(slope, 0);
+              count++;
+              map.put(slope, count);
+              lineMax = Math.max(lineMax, count);
+          }
+          res = Math.max(res, lineMax + overlap + 1);
+      }
+      return res;
+  }
+
+  public int generateGcd(int x, int y) {
+      if (y == 0) return x;
+      return generateGcd(y, x % y);
+  }
