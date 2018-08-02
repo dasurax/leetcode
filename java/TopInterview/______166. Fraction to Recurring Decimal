@@ -1,0 +1,50 @@
+https://leetcode.com/problems/fraction-to-recurring-decimal/description/
+
+Given two integers representing the numerator and denominator of a fraction, return the fraction in string format.
+
+If the fractional part is repeating, enclose the repeating part in parentheses.
+
+Example 1:
+
+Input: numerator = 1, denominator = 2
+Output: "0.5"
+Example 2:
+
+Input: numerator = 2, denominator = 1
+Output: "2"
+Example 3:
+
+Input: numerator = 2, denominator = 3
+Output: "0.(6)"
+
+# 不断的余数去除以被除数，并将余数加入到map中。一旦某一余数已经出现过，说明已经开始循环了。
+# 注意几种corner case。第一种是一正一负，需要都转换为正数，否则小数部分会出现负号。
+# 第二种是能整除时不要出现多余的小数点。第三者是结果为0时避免出现-0。
+
+class Solution {
+    public String fractionToDecimal(int numerator, int denominator) {
+        if (numerator == 0)
+            return "0";
+        String res = "";
+        Map<Long, Integer> remainder = new HashMap<>();
+        if(numerator > 0 ^ denominator > 0) res += "-";
+        long num = Math.abs((long)numerator);
+        long den = Math.abs((long)denominator);
+        long q = num / den;
+        long r = num % den;
+        res += q + ".";
+        while(r != 0) { 
+            if(remainder.containsKey(r)) {
+                int pos = remainder.get(r);
+                res = res.substring(0, pos) + "(" + res.substring(pos) + ")";
+                break;
+            }
+            remainder.put(r, res.length());
+            r *= 10;
+            q = r / den;
+            r = r % den;
+            res += q;            
+        }
+        return res.charAt(res.length() - 1) == '.' ? res.substring(0, res.length() - 1) : res;
+    }
+}
