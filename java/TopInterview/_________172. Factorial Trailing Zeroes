@@ -1,0 +1,36 @@
+https://leetcode.com/problems/factorial-trailing-zeroes/description/
+
+Given an integer n, return the number of trailing zeroes in n!.
+
+Example 1:
+
+Input: 3
+Output: 0
+Explanation: 3! = 6, no trailing zero.
+Example 2:
+
+Input: 5
+Output: 1
+Explanation: 5! = 120, one trailing zero.
+Note: Your solution should be in logarithmic time complexity.
+
+# 有多少个0，就是看能被10整除多少次。而所有的10都是由2*5组成的，因此就是看整个阶乘中，总共有多少对2和5的因子。
+# 显然2的因子数肯定多余5，因此只需统计5的个数。
+# 统计5的个数时，所有能被5整除的数都包含1个5，能被25整除的包含2个5，依此类推。
+# 因此总数即为 n /5 + n / 25 + n / 125 ....
+# 每轮保持n不变，分母*5，等价于每轮保持分母不变，n/=5。
+
+class Solution {
+    public int trailingZeroes(int n) {
+        int c = 0;
+        while(n >= 5) {
+            c += n / 5;
+            n /= 5;
+        }
+        return c;
+    }
+}
+
+# 递归的写法。
+
+ return n == 0 ? 0 : n / 5 + trailingZeroes(n / 5);
