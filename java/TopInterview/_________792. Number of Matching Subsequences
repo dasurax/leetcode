@@ -1,0 +1,89 @@
+https://leetcode.com/problems/number-of-matching-subsequences/description/
+
+Given string S and a dictionary of words words, find the number of words[i] that is a subsequence of S.
+
+Example :
+Input: 
+S = "abcde"
+words = ["a", "bb", "acd", "ace"]
+Output: 3
+Explanation: There are three words in words that are a subsequence of S: "a", "acd", "ace".
+Note:
+
+All words in words and S will only consists of lowercase letters.
+The length of S will be in the range of [1, 50000].
+The length of words will be in the range of [1, 5000].
+The length of words[i] will be in the range of [1, 50].
+
+# 同时访问多个单词，即对每一个单词，找到该单词待遍历的字母，并将该单词加入到该字母对应的列表中（waiting数组）。
+# 当访问S时，对于S的每一个字母c，我们查看当前有哪些单词的下一个待遍历的字母为c（即waiting[c]中的保存的单词），
+# 取出该单词，更新带遍历的位置。若待遍历的位置已经超过字符串的长度，则将count加1。
+# 复杂度O(|S| + ∑ |wordi|) 。
+# 方法一：在waiting数组的List中，用一个二维数组表示一个单词在words中的下标即待遍历的位置。
+
+class Solution {
+    // brute force 50000 * 50
+    public int numMatchingSubseq(String S, String[] words) {
+        int c = 0;
+        List<Integer[]>[] waiting = new List[27];
+        for (int i = 0; i < 27; i++)
+            waiting[i] = new ArrayList();
+        for(int i = 0; i < words.length; i++) 
+            waiting[words[i].charAt(0) - 'a' + 1].add(new Integer[]{i, 1});
+        for(int i = 0; i < S.length(); i++) {
+            int is = S.charAt(i) - 'a' + 1;
+            List<Integer[]> tmp = new ArrayList(waiting[is]);
+            waiting[is].clear();
+            for(Integer[] a: tmp) 
+                waiting[a[1] == words[a[0]].length() ? 0 : words[a[0]].charAt(a[1]++) - 'a' + 1].add(a);
+        }
+        return waiting[0].size();
+    }
+}
+
+# 方法二：使用StringCharacterIterator，这样就不用每次更新待遍历的过程。
+# 注意方法一和方法二都需要先将waiting中保存的list保存到临时变量中，并清空这个list。
+
+public int numMatchingSubseq(String S, String[] words) {
+    List<StringCharacterIterator>[] waiting = new List[128];
+    for (int c = 0; c <= 'z'; c++)
+        waiting[c] = new ArrayList();
+    for (String w : words)
+        waiting[w.charAt(0)].add(new StringCharacterIterator(w));
+    for (char c : S.toCharArray()) {
+        List<StringCharacterIterator> advance = waiting[c];
+        waiting[c] = new ArrayList();
+        for (StringCharacterIterator it : advance)
+            waiting[it.next() % it.DONE].add(it);
+    }
+    return waiting[0].size();
+}
+
+# 方法三：使用队列，这样可以通过出队操作来代替清空list的过程。
+
+class Solution {
+    public int numMatchingSubseq(String S, String[] words) {
+        Map<Character, Deque<String>> map = new HashMap<>();
+        for (char c = 'a'; c <= 'z'; c++) {
+            map.putIfAbsent(c, new LinkedList<String>());
+        }
+        for (String word : words) {
+            map.get(word.charAt(0)).addLast(word);
+        }
+
+        int count = 0;
+        for (char c : S.toCharArray()) {
+            Deque<String> queue = map.get(c);
+            int size = queue.size();
+            for (int i = 0; i < size; i++) {
+                String word = queue.removeFirst();
+                if (word.length() == 1) {
+                    count++;
+                } else {
+                    map.get(word.charAt(1)).addLast(word.substring(1));
+                }
+            }
+        }
+        return count;
+    }
+}
