@@ -1,0 +1,73 @@
+https://leetcode.com/problems/sqrtx/description/
+
+Implement int sqrt(int x).
+
+Compute and return the square root of x, where x is guaranteed to be a non-negative integer.
+
+Since the return type is an integer, the decimal digits are truncated and only the integer part of the result is returned.
+
+Example 1:
+
+Input: 4
+Output: 2
+Example 2:
+
+Input: 8
+Output: 2
+Explanation: The square root of 8 is 2.82842..., and since 
+             the decimal part is truncated, 2 is returned.
+             
+# 方法一：牛顿法。泰勒展开，令 f(x) = f(x0) + (x - x0)f'(x0) = 0，有 x - x0 = -(f(x0) / f'(x0))。
+# f(x) = x^2 - a, f'(x) = 2x, 有更新公式 x := (x + a / x) / 2。
+# 因此将目标x作为x0，不断迭代逼近根。注意如果不用long的话，(sqrt + x / sqrt)可能会溢出。
+# 而用 sqrt / 2 + x / sqrt / 2的话，两部分会被分别截断为整数，会造成错误的结果。
+
+class Solution {
+    public int mySqrt(int x) {
+        long sqrt = x;
+        if(x <= 1) return x;
+        while(sqrt > x / sqrt) {
+            sqrt = (sqrt + x / sqrt) / 2;
+        }
+        return (int)sqrt;
+    }
+}
+
+# 方法二：折半查找。从1到x的范围内开始查找，如果mid*mid>x，就将右边界左移。
+# 若果小于x，则更新sqrt值，并将左边界右移。
+
+class Solution {
+    public int mySqrt(int x) {        
+        if(x <= 1)
+            return x; 
+        int left = 1, right = x, th = Integer.MAX_VALUE, sqrt = 0;
+        
+        while(left <= right) {
+            int mid = left + (right - left) / 2;
+            if(mid <= th / mid && mid * mid <= x) {
+                sqrt = mid;
+                left = mid + 1;
+            } else {
+                right = mid - 1;
+            }
+        }
+        return sqrt;
+    }
+}
+
+# 方法三：位操作。因为x最大为2^31-1，因此x的根肯定要小于2^16，即第17位不可能为1。
+# 因此从第16为开始，将该位设置为1，如果平方超出x，说明该位不可能为1，则设置为0。
+# 通过|=在结果中设置该位为1，若超出x，通过^=在还原为0（因为x^=x = 0）。
+
+public int sqrt(int x) {
+    long ans = 0;
+    long bit = 1l << 15;
+    while(bit > 0) {
+        ans |= bit;
+        if (ans * ans > x) {
+            ans ^= bit;
+        }
+        bit >>= 1;
+    }
+    return (int)ans;
+}
