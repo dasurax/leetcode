@@ -1,0 +1,63 @@
+On an NxN chessboard, a knight starts at the r-th row and c-th column and attempts to make exactly K moves. 
+The rows and columns are 0 indexed, so the top-left square is (0, 0), and the bottom-right square is (N-1, N-1).
+
+A chess knight has 8 possible moves it can make, as illustrated below. 
+Each move is two squares in a cardinal direction, then one square in an orthogonal direction.
+
+
+Each time the knight is to move, it chooses one of eight possible moves uniformly at random 
+(even if the piece would go off the chessboard) and moves there.
+
+The knight continues moving until it has made exactly K moves or has moved off the chessboard. 
+Return the probability that the knight remains on the board after it has stopped moving.
+
+Example:
+Input: 3, 2, 0, 0
+Output: 0.0625
+Explanation: There are two moves (to (1,2), (2,1)) that will keep the knight on the board.
+From each of those positions, there are also two moves that will keep the knight on the board.
+The total probability the knight stays on the board is 0.0625.
+Note:
+N will be between 1 and 25.
+K will be between 0 and 100.
+The knight always initially starts on the board.
+
+# DP。第k轮停在i,j的概率，为上一轮停在i+dir1,j+dir2的概率（如果i+dir1,j+dir2在棋盘内）乘上1/8，然后对所有的dir1，dir2求和。
+# 最后一轮停在棋盘上的概率就上将所有位置的概率加起来。
+# 两个细节：只需两个dp数组即可，每次需要将当前轮的dp数组清零；可以将dp[r][c]置为1，表示第0时处于r,c的概率为1，
+# 这样可以避免先写一个循环来将第一轮可能位置的概率置为1/8。
+
+class Solution {
+    public double knightProbability(int N, int K, int r, int c) {
+        double dp[][][] = new double[2][N][N];
+        if(K == 0)
+            return 1;
+        if(N <= 2)
+            return 0;
+        int dir[][] = {{1, 2}, {1, -2}, {-1, 2}, {-1, -2}, {2, 1}, {2, -1}, {-2, 1}, {-2, -1}};
+        int pre = 0, cur = 1;
+        dp[pre][r][c] = 1;
+        double prob = 0;
+        for(int i = 0; i < K; i++) {
+            dp[cur] = new double[N][N];
+            for(int ri = 0; ri < N; ri++) {
+                for(int ci = 0; ci < N; ci++) {
+                    for(int d = 0; d < 8; d++) {
+                        int newr = ri + dir[d][0], newc = ci + dir[d][1];
+                        if(newr >= 0 && newr <= N - 1 && newc >= 0 && newc <= N - 1) {
+                            dp[cur][ri][ci] += dp[pre][newr][newc]  / 8;
+                        }
+                    }
+                }
+            }
+            pre = 1 - pre;
+            cur = 1 - cur;
+        }
+        for(int i = 0; i < N; i++) {
+            for(int j = 0; j < N; j++) {
+                prob += dp[pre][i][j];
+            }
+        }
+        return prob;
+    }
+}
