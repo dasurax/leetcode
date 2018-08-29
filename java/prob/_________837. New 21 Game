@@ -1,0 +1,52 @@
+Alice plays the following game, loosely based on the card game "21".
+
+Alice starts with 0 points, and draws numbers while she has less than K points.  During each draw, she gains an integer number of points randomly from the range [1, W], where W is an integer.  Each draw is independent and the outcomes have equal probabilities.
+
+Alice stops drawing numbers when she gets K or more points.  What is the probability that she has N or less points?
+
+Example 1:
+
+Input: N = 10, K = 1, W = 10
+Output: 1.00000
+Explanation:  Alice gets a single card, then stops.
+Example 2:
+
+Input: N = 6, K = 1, W = 10
+Output: 0.60000
+Explanation:  Alice gets a single card, then stops.
+In 6 out of W = 10 possibilities, she is at or below N = 6 points.
+Example 3:
+
+Input: N = 21, K = 17, W = 10
+Output: 0.73278
+Note:
+
+0 <= K <= N <= 10000
+1 <= W <= 10000
+Answers will be accepted as correct if they are within 10^-5 of the correct answer.
+The judging time limit has been reduced for this question.
+
+# DP。dp[i]保存了在抽取过程中得到点数i的概率。因为是均匀采样，且dp[i] = dp[i-1]*p(取到1) + dp[i-2]*p(取到2) + ... + dp[0]*p(取到i)，
+# 因此dp[i] = sum1~(i-1)dp * 1 / W。也就是说得到点i的概率，为得到比i小的概率的和再除以W，因此可以通过一个变量（psum）保存前i-1的概率和。
+# 当i=K时，我们停止抽取，因此当i>K时，最多只能通过分数为K-1通过抽取得到，因此当i>=k时，不再对psum进行累加。
+# i>=k时已经满足了停止条件，因此我们还需要将得到i的概率(i<=N)加入到结果中。
+# 当i超出了W的范围时需要从psum中减去不可能情况对应的概率（例如求W=10，计算i=11时，已经不可能用到dp[0]的值，因此要在i=10时减去dp[i-W]）。
+
+class Solution {
+    public double new21Game(int N, int K, int W) {
+        if(K + W - 1 <= N || K == 0)
+            return 1;
+        double dp[] = new double[N + 1], psum = 1, ret = 0;
+        dp[0] = 1;
+        for(int i = 1; i <= N; i++) {
+            dp[i] = psum / W;
+            if(i < K)
+                psum += dp[i];
+            else
+                ret += dp[i];
+            if(i >= W)
+                psum -= dp[i - W];
+        }
+        return ret;
+    }
+}
